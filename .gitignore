@@ -1,0 +1,5 @@
+*.exe
+/web/fonts
+*.ttf
+/extras
+/__pycache__
