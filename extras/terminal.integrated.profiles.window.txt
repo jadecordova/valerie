@@ -1,0 +1,28 @@
+"terminal.integrated.profiles.windows": {
+        "WinPython CMD": {
+            "path": "cmd.exe",
+            "args": [
+                "/K",
+                "C:\\Users\\decor\\Desktop\\ValerieFinal\\WPy64-3.13.11.1\\scripts\\env_for_icons.bat"
+            ],
+            "icon": "terminal-cmd", // optional: nice icon
+            "color": "terminal.ansiGreen" // optional: green tint to remind it's WinPython
+        },
+        "PowerShell": {
+            "source": "PowerShell",
+            "icon": "terminal-powershell"
+        },
+        "Command Prompt": {
+            "path": [
+                "${env:windir}\\Sysnative\\cmd.exe",
+                "${env:windir}\\System32\\cmd.exe"
+            ],
+            "args": [],
+            "icon": "terminal-cmd"
+        },
+        "Git Bash": {
+            "source": "Git Bash",
+            "icon": "terminal-git-bash"
+        }
+    },
+    "terminal.integrated.defaultProfile.windows": "WinPython CMD",
