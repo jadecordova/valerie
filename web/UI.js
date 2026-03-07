@@ -179,24 +179,20 @@ class UI {
             const option = document.createElement('option');
             option.value = el.id;
             option.textContent = el[property];
-            option.score = el.score;
+            option.objectRef = el;
             UI.addStarTagDialogSelect.appendChild(option);
         });
     }
 
     static InitAddStarTagDialogOKButton() {
         UI.addStarTagDialogOKButton.addEventListener('click', () => {
-            const selected = [...UI.addStarTagDialogSelect.selectedOptions].map(option => ({
-                text: option.text.trim(),
-                id: option.value,
-                score: option.score
-            }));
+            const selected = [...UI.addStarTagDialogSelect.selectedOptions].map(option => option.objectRef);
             if (selected.length) {
                 const container = UI.addStarTagDialog.container;
                 selected.forEach(el => {
                     UI.addStarTagDialog.items?.add(el.text);
-                    //TODO: Add score to the CreateBadge method.
-                    const badge = Movie.CreateBadge(el.text, el.id, el.score, UI.addStarTagDialog.movie, UI.addStarTagDialog.items);
+                    //TODO: Now we're passing the star or tag object to CreateBadge. NEEDS UPDATE.
+                    const badge = Movie.CreateBadge(el, UI.addStarTagDialog.movie, UI.addStarTagDialog.items);
                     container.appendChild(badge);
                 });
                 UI.HideDialog(UI.addStarTagDialog);
@@ -211,11 +207,109 @@ class UI {
         UI.addStarTagDialog.showModal();
     }
 
+    // Disk and container dialog
+    static InitDiskContainerDialog() {
+        UI.InitDiskContainerDialogCancelButton();
+        UI.InitDiskContainerDialogOKButton();
+    }
+
+    static InitDiskContainerDialogOKButton() {
+        UI.diskContainerDialogOKButton.addEventListener('click', async () => {
+            Movie.disk = UI.diskInput.value.trim();
+            Movie.container = UI.containerInput.value.trim();
+            if (Movie.disk && Movie.container) {
+                UI.HideConfirmImportButton();
+                // Pass the values back to the caller (e.g., MovieCard)
+                const result = await eel.Import_Videos()();
+                if (result && result.status == 'started') {
+                    UI.ShowProgressDialog("Importing Videos", "Please wait while videos are being imported...", 100);
+                }
+                UI.HideDialog(UI.diskContainerDialog);
+            } else {
+                UI.ShowAlertDialog("Error", "Please enter both disk and container.");
+            }
+        });
+    }
+
+    static InitDiskContainerDialogCancelButton() {
+        UI.diskContainerDialogCancelButton.addEventListener('click', () => {
+            UI.HideDialog(UI.diskContainerDialog);
+        });
+    }
+
+    // Confirm dialog 
+    static ShowConfirmDialog(title, message) {
+        UI.confirmDialogHeader.textContent = title;
+        UI.confirmDialogMessage.textContent = message;
+        return new Promise((resolve) => {
+            UI.confirmDialogOKButton.addEventListener('click', () => {
+                UI.HideDialog(UI.confirmDialog);
+                resolve(true);
+            });
+            UI.confirmDialogCancelButton.addEventListener('click', () => {
+                UI.HideDialog(UI.confirmDialog);
+                resolve(false);
+            });
+            UI.confirmDialog.onclose = () => {
+                resolve(false);
+            };
+
+            UI.confirmDialog.showModal();
+        });
+    }
+
+    // Alert dialog
+    static InitAlertDialog() {
+        UI.InitAlertDialogOKButton();
+    }
+
+    static InitAlertDialogOKButton() {
+        UI.alertDialogOKButton.addEventListener('click', () => {
+            UI.HideDialog(UI.alertDialog);
+        });
+    }
+
+    static ShowAlertDialog(header, message) {
+        UI.alertDialogHeader.textContent = header;
+        UI.alertDialogMessage.textContent = message;
+        UI.alertDialog.showModal();
+    }
+
+    // Progress dialog
+    static InitProgressDialog() {
+        UI.InitProgressDialogOKButton();
+    }
+
+    static InitProgressDialogOKButton() {
+        UI.progressDialogOKButton.addEventListener('click', () => {
+            UI.HideDialog(UI.progressDialog);
+        });
+    }
+
+    static ShowProgressDialog(header, message, max = 100) {
+        UI.progressDialogHeader.textContent = header;
+        UI.progressDialogMessage.textContent = message;
+        UI.progressDialogOKButton.disabled = true;
+        UI.progressDialogProgressBar.value = 0;
+        UI.progressDialogProgressBar.max = max;
+        UI.progressDialog.showModal();
+    }
+
+    static UpdateProgressDialog(progress, max = 100, message = "") {
+        UI.progressDialogMessage.textContent = message;
+        UI.progressDialogProgressBar.value = progress;
+        UI.progressDialogProgressBar.max = max;
+    }
+
+    // New elements dialog
 
 
     static Init() {
         UI.GetElements();
         UI.InitSearchDialog();
         UI.InitAddStarTagDialog();
+        UI.InitDiskContainerDialog();
+        UI.InitAlertDialog();
+        UI.InitProgressDialog();
     }
 }

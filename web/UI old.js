@@ -1,104 +1,19 @@
 class UI {
 
-    static StarThumbsPath = './val/';
-    static MovieThumbsPath = './lin/';
-
-    // Utility functions
-    //----------------------------------------------------------------------------------------------------------
-
-
-
-
 
     static ShowSearchDialog() {
         UI.searchDialog.showModal();
-    }
-
-
-
-    // Disk and container dialog
-    //----------------------------------------------------------------------------------------------------------
-
-    static InitDiskContainerDialogCancelButton() {
-        UI.diskContainerDialogCancelButton.addEventListener('click', () => {
-            UI.HideDialog(UI.diskContainerDialog);
-        });
-    }
-
-    static InitDiskContainerDialogOKButton() {
-        UI.diskContainerDialogOKButton.addEventListener('click', async () => {
-            Movie.disk = UI.diskInput.value.trim();
-            Movie.container = UI.containerInput.value.trim();
-            if (Movie.disk && Movie.container) {
-                UI.HideConfirmImportButton();
-                // Pass the values back to the caller (e.g., MovieCard)
-                const result = await eel.Import_Videos()();
-                if (result && result.status == 'started') {
-                    UI.ShowProgressDialog("Importing Videos", "Please wait while videos are being imported...", 100);
-                }
-                UI.HideDialog(UI.diskContainerDialog);
-            } else {
-                UI.ShowAlertDialog("Error", "Please enter both disk and container.");
-            }
-        });
-    }
-
-    static InitDiskContainerDialog() {
-        UI.GetDiskContainerDialogElements();
-        UI.InitDiskContainerDialogCancelButton();
-        UI.InitDiskContainerDialogOKButton();
     }
 
     static ShowDiskContainerDialog() {
         UI.diskContainerDialog.showModal();
     }
 
-    // Confirm dialog 
+
+    // Alert dialog
     //----------------------------------------------------------------------------------------------------------
 
-    static ShowConfirmDialog(title, message) {
-        UI.confirmDialogHeader.textContent = title;
-        UI.confirmDialogMessage.textContent = message;
-        return new Promise((resolve) => {
-            UI.confirmDialogOKButton.addEventListener('click', () => {
-                UI.HideDialog(UI.confirmDialog);
-                resolve(true);
-            });
-            UI.confirmDialogCancelButton.addEventListener('click', () => {
-                UI.HideDialog(UI.confirmDialog);
-                resolve(false);
-            });
-            UI.confirmDialog.onclose = () => {
-                resolve(false);
-            };
 
-            UI.confirmDialog.showModal();
-        });
-    }
-
-    static InitConfirmDialog() {
-        UI.GetConfirmDialogElements();
-    }
-
-    // Alert elements dialog
-    //----------------------------------------------------------------------------------------------------------
-
-    static InitAlertDialogOKButton() {
-        UI.alertDialogOKButton.addEventListener('click', () => {
-            UI.HideDialog(UI.alertDialog);
-        });
-    }
-
-    static ShowAlertDialog(header, message) {
-        UI.alertDialogHeader.textContent = header;
-        UI.alertDialogMessage.textContent = message;
-        UI.alertDialog.showModal();
-    }
-
-    static InitAlertDialog() {
-        UI.GetAlertDialogElements();
-        UI.InitAlertDialogOKButton();
-    }
 
     // New elements dialog
     //----------------------------------------------------------------------------------------------------------
@@ -243,31 +158,7 @@ class UI {
     // Progress dialog elements
     //----------------------------------------------------------------------------------------------------------
 
-    static InitProgressDialogOKButton() {
-        UI.progressDialogOKButton.addEventListener('click', () => {
-            UI.HideDialog(UI.progressDialog);
-        });
-    }
 
-    static InitProgressDialog() {
-        UI.GetProgressDialogElements();
-        UI.InitProgressDialogOKButton();
-    }
-
-    static ShowProgressDialog(header, message, max = 100) {
-        UI.progressDialogHeader.textContent = header;
-        UI.progressDialogMessage.textContent = message;
-        UI.progressDialogOKButton.disabled = true;
-        UI.progressDialogProgressBar.value = 0;
-        UI.progressDialogProgressBar.max = max;
-        UI.progressDialog.showModal();
-    }
-
-    static UpdateProgressDialog(progress, max = 100, message = "") {
-        UI.progressDialogMessage.textContent = message;
-        UI.progressDialogProgressBar.value = progress;
-        UI.progressDialogProgressBar.max = max;
-    }
 
     // Toolbar elements and buttons
     //----------------------------------------------------------------------------------------------------------
