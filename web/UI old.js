@@ -1,93 +1,5 @@
 class UI {
 
-
-    static ShowSearchDialog() {
-        UI.searchDialog.showModal();
-    }
-
-    static ShowDiskContainerDialog() {
-        UI.diskContainerDialog.showModal();
-    }
-
-
-    // Alert dialog
-    //----------------------------------------------------------------------------------------------------------
-
-
-
-    // New elements dialog
-    //----------------------------------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-    static ShowNewElementsDialog(stars, tags) {
-        if ((!stars || stars.length === 0) && (!tags || tags.length === 0)) {
-            return;
-        }
-
-        UI.newStarsList.innerHTML = '';
-        UI.newTagsList.innerHTML = '';
-
-        if (stars && stars.length) {
-            stars.forEach(star => {
-                const newStarRow = UI.GetElementFromTemplate('new-element-row-template');
-                newStarRow.classList.add('new-star-row');
-                newStarRow.querySelector('.new-element-name').value = star;
-                UI.InitNewElementsDialogSpecialButton(newStarRow);
-                UI.InitNewElementsDialogRemoveButton(newStarRow, UI.newStarsList, UI.newElementsDialogStarsMessage);
-                UI.newStarsList.appendChild(newStarRow);
-            });
-        }
-        else {
-            UI.newElementsDialogStarsMessage.style.display = 'none';
-            UI.newStarsList.style.display = 'none';
-        }
-        if (tags && tags.length) {
-            tags.forEach(tag => {
-                const newTagRow = UI.GetElementFromTemplate('new-element-row-template');
-                newTagRow.classList.add('new-tag-row');
-                newTagRow.querySelector('.new-element-name').value = tag;
-                const specialIcon = newTagRow.querySelector('.special-icon').parentElement;
-                specialIcon.style.display = 'none';
-                specialIcon.style.pointerEvents = 'none';
-                specialIcon.style.cursor = 'default';
-                UI.InitNewElementsDialogRemoveButton(newTagRow, UI.newTagsList, UI.newElementsDialogTagsMessage);
-                UI.newTagsList.appendChild(newTagRow);
-            });
-        }
-        else {
-            UI.newElementsDialogTagsMessage.style.display = 'none';
-            UI.newTagsList.style.display = 'none';
-        }
-
-        return new Promise((resolve) => {
-            UI.newElementsDialogOKButton.addEventListener('click', () => {
-                UI.HideDialog(UI.newElementsDialog);
-                resolve(true);
-            });
-            UI.newElementsDialogCancelButton.addEventListener('click', () => {
-                UI.HideDialog(UI.newElementsDialog);
-                resolve(false);
-            });
-            UI.newElementsDialog.onclose = () => {
-                resolve(false);
-            };
-
-            UI.newElementsDialog.showModal();
-        });
-    }
-
-    // Progress dialog elements
-    //----------------------------------------------------------------------------------------------------------
-
-
-
     // Toolbar elements and buttons
     //----------------------------------------------------------------------------------------------------------
     static GetToolBarElements() {
@@ -136,17 +48,6 @@ class UI {
         });
     }
 
-    static InitImportMoviesButton() {
-        UI.ImportMoviesButton.addEventListener('click', async () => {
-            UI.ShowDiskContainerDialog();
-        });
-    }
-
-    static InitSearchButton() {
-        UI.SearchButton.addEventListener('click', async () => {
-            UI.ShowSearchDialog();
-        });
-    }
 
     static InitToolbarButtons() {
         UI.InitImportMoviesButton();
