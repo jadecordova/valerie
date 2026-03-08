@@ -18,85 +18,13 @@ class UI {
     // New elements dialog
     //----------------------------------------------------------------------------------------------------------
 
-    static GetNewStarsFromDialog() {
-        const newStars = [];
-        const starRows = UI.newStarsList.querySelectorAll('.new-star-row');
-        starRows.forEach(row => {
-            const starName = row.querySelector('.new-element-name').value.trim();
-            if (starName) {
-                const isSpecial = row.querySelector('.special-icon').parentElement.classList.contains('new-star-special');
-                const score = parseInt(row.querySelector('.new-element-score').value) || 0;
-                newStars.push({ name: starName, special: isSpecial, score: score, movies: 0 });
-            }
-        });
-        return newStars;
-    }
 
-    static GetNewTagsFromDialog() {
-        const newTags = [];
-        const tagRows = UI.newTagsList.querySelectorAll('.new-tag-row');
-        tagRows.forEach(row => {
-            const tagName = row.querySelector('.new-element-name').value.trim();
-            if (tagName) {
-                const score = parseInt(row.querySelector('.new-element-score').value) || 0;
-                newTags.push({ tag: tagName, score: score });
-            }
-        });
-        return newTags;
-    }
 
-    static async AddNewElements() {
-        const newStars = UI.GetNewStarsFromDialog();
-        const newTags = UI.GetNewTagsFromDialog();
 
-        try {
-            const result = await eel.Add_New_Elements(newStars, newTags)();
-            if (result && result.error) {
-                UI.ShowAlertDialog("Error", result.error);
-                console.error('Insert error:', result.error);
-            } else {
-                Star.stars = result.stars.map(s => new Star(s));
-                Tag.tags = result.tags.map(t => new Tag(t));
-                Star.CreateScoreMap();
-                Tag.CreateScoreMap();
-                Star.ShowStarCards();
-                UI.HideDialog(UI.alertDialog);
-                UI.HideDialog(UI.newElementsDialog);
-            }
-        } catch (err) {
-            UI.ShowAlertDialog("Error", "Error: " + err);
-            console.error(err);
-        }
-    }
 
-    static InitNewElementsDialogSpecialButton(starRow) {
-        const specialButton = starRow.querySelector('.special-icon').parentElement;
-        specialButton.addEventListener('click', () => {
-            specialButton.classList.toggle('new-star-special');
-        });
-    }
 
-    static InitNewElementsDialogRemoveButton(row, listElement, messageElement) {
-        const removeButton = row.querySelector('.delete-icon').parentElement;
-        removeButton.addEventListener('click', () => {
-            row.remove();
-            if (listElement.children.length === 0) {
-                messageElement.style.display = 'none';
-                listElement.style.display = 'none';
-            }
-        });
-    }
 
-    static InitNewElementsDialogCancelButton() {
-        UI.newElementsDialogCancelButton.addEventListener('click', () => {
-            UI.newElementsDialog.close();
-        });
-    }
 
-    static InitNewElementsDialog() {
-        UI.GetNewElementsDialogElements();
-        UI.InitNewElementsDialogCancelButton();
-    }
 
     static ShowNewElementsDialog(stars, tags) {
         if ((!stars || stars.length === 0) && (!tags || tags.length === 0)) {

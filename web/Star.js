@@ -17,6 +17,16 @@ class Star {
         this.CreateStarCard();
     }
 
+    Export() {
+        return {
+            id: this.id,
+            name: this.name,
+            score: this.score,
+            special: this.special,
+            movies: this.movies
+        };
+    }
+
     CreateStarCard() {
         const starCard = UI.GetElementFromTemplate('star-card-template');
 

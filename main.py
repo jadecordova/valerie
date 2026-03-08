@@ -13,4 +13,4 @@ eel.start(
     position=(0, 0)
 )
 
-#python -m eel main.py web --onefile --noconsole
+#python -m eel main.py web --onefile --noconsole --icon=icon.ico
