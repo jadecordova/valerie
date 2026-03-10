@@ -29,7 +29,6 @@ class Star {
 
     CreateStarCard() {
         const starCard = UI.GetElementFromTemplate('star-card-template');
-
         starCard.starId = this.id; // Store the star ID on the card element for easy access
         starCard.querySelector('.star-card-name').textContent = this.name;
         starCard.querySelector('.star-card-id').textContent = this.id;
@@ -37,19 +36,20 @@ class Star {
         starCard.querySelector('.star-card-movies').textContent = this.movies;
         starCard.querySelector('.star-card-image').src = `${UI.StarThumbsPath}${this.id}`;
         if (this.special) starCard.querySelector('.star-card-special').classList.add('special-star');
-
         this.card = starCard;
     }
 
-    // Update `special` state on the existing card (safe to call after construction)
-    setSpecial(isSpecial) {
+    SetSpecial(isSpecial) {
         this.special = !!isSpecial;
         if (!this.card) return;
         const el = this.card.querySelector('.star-card-special');
         if (el) el.classList.toggle('special-star', this.special);
     }
 
-    // Static
+    CreateBadge() {
+        return UI.CreateBadge(this);
+    }
+
     //-------------------------------------------------------------------------------------------------------
     static stars = null;
 
@@ -58,14 +58,13 @@ class Star {
         Star.stars = data.map(s => new Star(s));
     }
 
-
     static ShowStarCards() {
-        UI.starsContainer.innerHTML = ''; // Clear existing content
+        UI.starsSection.innerHTML = ''; // Clear existing content
         const fragment = document.createDocumentFragment();
         Star.stars.forEach(star => {
             fragment.appendChild(star.card);
         });
-        UI.starsContainer.appendChild(fragment);
+        UI.starsSection.appendChild(fragment);
     }
 
     static async RefreshStars() {
@@ -81,21 +80,6 @@ class Star {
         });
     }
 
-    static GetStarIdByName(name) {
-        const star = Star.stars.find(s => s.name === name);
-        return star ? star.id : null;
-    }
-
-    static GetScore(starName) {
-        return Star.scoreMap.get(starName) || 0;
-    }
-
-    static async Init() {
-        await Star.GetStars();
-        Star.CreateScoreMap();
-        Star.ShowStarCards();
-    }
-
     static SortStars(by = 'name', ascending = true) {
         const compare = (a, b) => {
             if (a[by] < b[by]) return ascending ? -1 : 1;
@@ -104,4 +88,29 @@ class Star {
         };
         Star.stars.sort(compare);
     }
+
+    static GetStarIdByName(name) {
+        const star = Star.stars.find(s => s.name === name);
+        return star ? star.id : null;
+    }
+
+    static GetStarNameById(id) {
+        const star = Star.stars.find(s => s.id === id);
+        return star ? star.name : null;
+    }
+
+    static GetStarById(id) {
+        return Star.stars.find(s => s.id === id);
+    }
+
+    static GetStarByName(name) {
+        return Star.stars.find(s => s.name === name);
+    }
+
+    static async Init() {
+        await Star.GetStars();
+        Star.CreateScoreMap();
+        Star.ShowStarCards();
+    }
+
 }

@@ -10,13 +10,14 @@ class Tag {
         this.score = score;
     }
 
+    CreateBadge() {
+        return UI.CreateBadge(this);
+    }
+
+    // Static
     static async GetTags() {
         const data = await eel.Get_Tags()();
         Tag.tags = data.map(t => new Tag(t));
-    }
-
-    static GetScore(tagName) {
-        return Tag.scoreMap.get(tagName) || 0;
     }
 
     static CreateScoreMap() {
@@ -31,6 +32,19 @@ class Tag {
         return tag ? tag.id : null;
     }
 
+    static GetTagNameById(id) {
+        const tag = Tag.tags.find(t => t.id === id);
+        return tag ? tag.tag : null;
+    }
+
+    static GetTagByName(name) {
+        return Tag.tags.find(t => t.tag === name) || null;
+    }
+
+    static GetTagById(id) {
+        return Tag.tags.find(t => t.id === id) || null;
+    }
+    q
     static async Init() {
         await Tag.GetTags();
         Tag.CreateScoreMap();

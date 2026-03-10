@@ -93,7 +93,6 @@ def get_videos_in_folder(folder_path: str | Path):
     if not root.is_dir():
         raise NotADirectoryError(f"Not a directory: {root}")
     def process_videos():
-        logger.info(f"Processing videos in folder: {root}")
         try:
             # Get all existing stars and tags from the database
             db_stars_data = get_table_data('stars')

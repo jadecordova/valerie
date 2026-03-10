@@ -1,336 +1,328 @@
 <!DOCTYPE html>
 <html>
 
-<head>
-    <title>Valerie</title>
-    <link rel="stylesheet" href="style.css">
-    <script type="text/javascript" src="/eel.js"></script>
-    <script type="text/javascript" src="/UI.js"></script>
-    <script type="text/javascript" src="/Star.js"></script>
-    <script type="text/javascript" src="/Tag.js"></script>
-    <script type="text/javascript" src="/Movie.js"></script>
-    <script type="text/javascript" src="/Utils.js"></script>
-    <script type="text/javascript" src="/app.js"></script>
-</head>
+    <head>
+        <title>Valerie</title>
+        <link rel="stylesheet" href="style.css">
+        <script type="text/javascript" src="/eel.js"></script>
+        <script type="text/javascript" src="/UI.js"></script>
+        <script type="text/javascript" src="/Star.js"></script>
+        <script type="text/javascript" src="/Tag.js"></script>
+        <script type="text/javascript" src="/Movie.js"></script>
+        <script type="text/javascript" src="/Utils.js"></script>
+        <script type="text/javascript" src="/app.js"></script>
+    </head>
 
-<body>
-    <main>
+    <body>
+        <main>
 
-        <menu>
-            <div class="menu-item">
-                Movies
-                <div class="dropdown">
-                    <div class="option" id="import-movies-menu">Import...<span class="shortcut">Ctrl+I</span></div>
-                    <div class="option" id="search-movies-menu">Search...<span class=" shortcut">Ctrl+F</span></div>
-                </div>
-            </div>
-            <div class="menu-item">
-                Stars
-                <div class="dropdown">
-                    <div class="option" id="add-star-menu">Add star...<span class="shortcut">Ctrl+S</span></div>
-                </div>
-            </div>
-        </menu>
-
-        <div id="toolbar">
-            <button id="search-button" class="toolbar-button">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="toolbar-icon">
-                    <path
-                        d="M480.3 272C480.3 317.9 465.4 360.3 440.3 394.7L566.9 521.4L589.5 544L544.3 589.3L521.6 566.6L395 440C360.6 465.2 318.2 480 272.3 480C157.4 480 64.3 386.9 64.3 272C64.3 157.1 157.4 64 272.3 64C387.2 64 480.3 157.1 480.3 272zM272.3 416C351.8 416 416.3 351.5 416.3 272C416.3 192.5 351.8 128 272.3 128C192.8 128 128.3 192.5 128.3 272C128.3 351.5 192.8 416 272.3 416z" />
-                </svg>
-            </button>
-
-            <button id="select-folder-button" class="toolbar-button">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="toolbar-icon">
-                    <path
-                        d="M64 128L448 128L448 512L64 512L64 128zM496 405.3L496 234.6L608 159.9L608 479.9L496 405.2zM296 368L241.9 368L344.9 265L361.9 248L328 214.1L311 231.1L208 334.1L208 256L160 256L160 416L320 416L320 368L296 368z" />
-                </svg>
-                <span>Import movies...</span>
-            </button>
-
-            <button id="confirm-import-movies-button" class="toolbar-button display-none">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="toolbar-icon">
-                    <path
-                        d="M352 64L352 32L288 32L288 306.7C284 302.7 273.3 292 256 274.7L210.7 320C218.9 328.2 247.8 357.1 297.3 406.6L320 429.3L429.3 320L384 274.7L352 306.7L352 64zM128 160L96 160L96 576L544 576L544 160L416 160L416 224L480 224L480 512L160 512L160 224L224 224L224 160L128 160z" />
-                </svg>
-                <span>Confirm import</span>
-            </button>
-        </div>
-        <div id="stars" class="custom-scrollbar"></div>
-        <div id="movies" class="custom-scrollbar"></div>
-
-        <!-- Search dialog ----------------------------------------------------------------->
-        <dialog id="search-dialog">
-            <div id="search-dialog-header" class="dialog-header">Search movies</div>
-            <div id="search-dialog-body" class="dialog-body custom-scrollbar">
-                <div class="top-row">
-                    <label for="search-disk">
-                        Disk:
-                        <input type="text" id="search-disk" name="search-disk" placeholder="Disk" />
-                    </label>
-                    <label for="search-container">
-                        Container:
-                        <input type="text" id="search-container" name="search-container" placeholder="Container" />
-                    </label>
-                    <label for="search-score">
-                        Score:
-                        <input type="number" id="search-score" name="search-score" placeholder="Score" />
-                    </label>
-                </div>
-                <div class="add-button-container">
-                    <div>Stars
-                        <button id="add-star-button">+</button>
-                    </div>
-                    <div id="stars-container"></div>
-                </div>
-                <div class="add-button-container">
-                    <div>Tags
-                        <button id="add-tag-button">+</button>
-                    </div>
-                    <div id="tags-container"></div>
-                </div>
-
-            </div>
-            <div id="search-dialog-footer" class="dialog-footer">
-                <button id="search-dialog-cancel-button" class="button">Cancel</button>
-                <button id="search-dialog-search-button" class="button button-primary">Search</button>
-            </div>
-        </dialog>
-
-        <!-- Add star/tag dialog ----------------------------------------------------------------->
-        <dialog id="add-star-tag-dialog">
-            <div id="add-star-tag-dialog-header" class="dialog-header"></div>
-            <div id="add-star-tag-dialog-body" class="dialog-body custom-scrollbar">
-                <select id="add-star-tag-dialog-select" multiple size="10" class="custom-scrollbar"></select>
-            </div>
-            <div id="add-star-tag-dialog-footer" class="dialog-footer">
-                <button id="add-star-tag-dialog-cancel-button" class="button">Cancel</button>
-                <button id="add-star-tag-dialog-ok-button" class="button button-primary">OK</button>
-            </div>
-        </dialog>
-
-        <!-- Disk/Container dialog ----------------------------------------------------------------->
-        <dialog id="disk-container-dialog">
-            <div id="disk-container-dialog-header" class="dialog-header">Input disk & container</div>
-            <div id="disk-container-dialog-body" class="dialog-body">
-                <label for="disk-input">Disk:
-                    <input type="text" id="disk-input" name="disk-input"></input>
-                </label>
-                <label for="container-input">Container:
-                    <input type="text" id="container-input" name="container-input"></input>
-                </label>
-            </div>
-            <div id="disk-container-dialog-footer" class="dialog-footer">
-                <button id="disk-container-dialog-cancel-button" class="button">Cancel</button>
-                <button id="disk-container-dialog-ok-button" class="button button-primary">OK</button>
-            </div>
-        </dialog>
-
-        <!-- New elements dialog ----------------------------------------------------------------->
-        <dialog id="new-elements-dialog">
-            <div id="new-elements-dialog-header" class="dialog-header">New Elements</div>
-            <div id="new-elements-dialog-body" class="dialog-body custom-scrollbar">
-                <p id="new-elements-dialog-stars-message" class="new-elements-dialog-message">New Stars</p>
-                <div id="new-stars-list" class="new-elements-list"></div>
-                <p id="new-elements-dialog-tags-message" class="new-elements-dialog-message">New Tags</p>
-                <div id="new-tags-list" class="new-elements-list"></div>
-            </div>
-            <div id="new-elements-dialog-footer" class="dialog-footer">
-                <button id="new-elements-dialog-cancel-button" class="button">Cancel</button>
-                <button id="new-elements-dialog-ok-button" class="button button-primary">OK</button>
-            </div>
-        </dialog>
-
-        <!-- Progress dialog ----------------------------------------------------------------->
-        <dialog id="progress-dialog">
-            <div id="progress-dialog-header" class="dialog-header">Progress dialog header</div>
-            <div id="progress-dialog-body" class="dialog-body">
-                <p id="progress-dialog-message">Progress dialog message</p>
-                <progress id="progress-bar" value="0" max="100"></progress>
-            </div>
-            <div id="progress-dialog-footer" class="dialog-footer">
-                <button id="progress-dialog-ok-button" class="button button-primary">OK</button>
-            </div>
-        </dialog>
-
-        <!-- Info dialog ----------------------------------------------------------------->
-        <dialog id="info-dialog">
-            <div id="info-dialog-header" class="dialog-header">Info dialog header</div>
-            <div id="info-dialog-body" class="dialog-body custom-scrollbar">
-                <p id="info-dialog-message">Info dialog message</p>
-            </div>
-            <div id="info-dialog-footer" class="dialog-footer">
-                <button id="info-dialog-ok-button" class="button button-primary">OK</button>
-            </div>
-        </dialog>
-
-        <!-- Alert dialog ----------------------------------------------------------------->
-        <dialog id="alert-dialog">
-            <div id="alert-dialog-header" class="dialog-header">Alert dialog header</div>
-            <div id="alert-dialog-body" class="dialog-body">
-                <p id="alert-dialog-message">Alert dialog message</p>
-            </div>
-            <div id="alert-dialog-footer" class="dialog-footer">
-                <button id="alert-dialog-ok-button" class="button button-primary">OK</button>
-            </div>
-        </dialog>
-
-        <!-- Confirm dialog ----------------------------------------------------------------->
-        <dialog id="confirm-dialog">
-            <div id="confirm-dialog-header" class="dialog-header">confirm dialog header</div>
-            <div id="confirm-dialog-body" class="dialog-body">
-                <p id="confirm-dialog-message">confirm dialog message</p>
-            </div>
-            <div id="confirm-dialog-footer" class="dialog-footer">
-                <button id="confirm-dialog-ok-button" class="button button-primary">OK</button>
-                <button id="confirm-dialog-cancel-button" class="button">Cancel</button>
-            </div>
-        </dialog>
-    </main>
-
-    <!----------------------------------------------------------------------- New element row template -->
-    <template id="new-element-row-template">
-        <div class="new-element-row">
-            <input type="text" class="new-element-name"></input>
-            <input type="number" class="new-element-score" name="new-element-score" min="0" max="100000" step="1000" value="1000">
-            <div class="new-element-button-container">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                    <path class="app-icon special-icon"
-                        d="M512 256c0-37.7-23.7-69.9-57.1-82.4 14.7-32.4 8.8-71.9-17.9-98.6-26.7-26.7-66.2-32.6-98.6-17.9C325.9 23.7 293.7 0 256 0s-69.9 23.7-82.4 57.1c-32.4-14.7-72-8.8-98.6 17.9-26.7 26.7-32.6 66.2-17.9 98.6C23.7 186.1 0 218.3 0 256s23.7 69.9 57.1 82.4c-14.7 32.4-8.8 72 17.9 98.6 26.6 26.6 66.1 32.7 98.6 17.9 12.5 33.3 44.7 57.1 82.4 57.1s69.9-23.7 82.4-57.1c32.6 14.8 72 8.7 98.6-17.9 26.7-26.7 32.6-66.2 17.9-98.6 33.4-12.5 57.1-44.7 57.1-82.4zm-144.8-44.25L236.16 341.74c-4.31 4.28-11.28 4.25-15.55-.06l-75.72-76.33c-4.28-4.31-4.25-11.28.06-15.56l26.03-25.82c4.31-4.28 11.28-4.25 15.56.06l42.15 42.49 97.2-96.42c4.31-4.28 11.28-4.25 15.55.06l25.82 26.03c4.28 4.32 4.26 11.29-.06 15.56z" />
-                </svg>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-                    <path class="app-icon delete-icon"
-                        d="M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 0 0 0 47.9-45L416 128H32z" />
-                </svg>
-            </div>
-        </div>
-    </template>
-
-    <!----------------------------------------------------------------------- Star card template -->
-    <template id="star-card-template">
-        <button class="star-card">
-            <div class="star-card-image-container">
-                <img class="star-card-image" src="" />
-            </div>
-            <div class="star-card-top">
-                <div class="star-card-id"></div>
-                <h3 class="star-card-name"></h3>
-            </div>
-            <div class="star-card-bottom">
-                <div class="star-card-score-container">
-                    <span>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
-                            <path class="app-icon score-icon"
-                                d="M288 32C128.94 32 0 160.94 0 320c0 52.8 14.25 102.26 39.06 144.8 5.61 9.62 16.3 15.2 27.44 15.2h443c11.14 0 21.83-5.58 27.44-15.2C561.75 422.26 576 372.8 576 320c0-159.06-128.94-288-288-288zm163.2 174.41L342.65 351.14c5.81 9.63 9.35 20.79 9.35 32.86 0 11.72-3.38 22.55-8.88 32H232.88c-5.5-9.45-8.88-20.28-8.88-32 0-35.35 28.65-64 64-64 5.65 0 11.02.96 16.24 2.34L412.8 177.59c7.98-10.56 23-12.72 33.61-4.8 10.59 7.96 12.75 23.01 4.79 33.62z" />
-                        </svg>
-                    </span>
-                    <span class="star-card-score"></span>
-                </div>
-                <div class="star-card-movies-container">
-                    <span>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                            <path class="app-icon movies-icon"
-                                d="M488 64h-8v20c0 6.6-5.4 12-12 12h-40c-6.6 0-12-5.4-12-12V64H96v20c0 6.6-5.4 12-12 12H44c-6.6 0-12-5.4-12-12V64h-8C10.7 64 0 74.7 0 88v336c0 13.3 10.7 24 24 24h8v-20c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v20h320v-20c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v20h8c13.3 0 24-10.7 24-24V88c0-13.3-10.7-24-24-24zM96 372c0 6.6-5.4 12-12 12H44c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40zm0-96c0 6.6-5.4 12-12 12H44c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40zm0-96c0 6.6-5.4 12-12 12H44c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40zm384 192c0 6.6-5.4 12-12 12h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40zm0-96c0 6.6-5.4 12-12 12h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40zm0-96c0 6.6-5.4 12-12 12h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40z" />
-                        </svg>
-                    </span>
-                    <span class="star-card-movies"></span>
-                </div>
-                <div class="app-icons">
-                    <div class="star-card-special">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                            <path class="app-icon special-icon"
-                                d="M512 256c0-37.7-23.7-69.9-57.1-82.4 14.7-32.4 8.8-71.9-17.9-98.6-26.7-26.7-66.2-32.6-98.6-17.9C325.9 23.7 293.7 0 256 0s-69.9 23.7-82.4 57.1c-32.4-14.7-72-8.8-98.6 17.9-26.7 26.7-32.6 66.2-17.9 98.6C23.7 186.1 0 218.3 0 256s23.7 69.9 57.1 82.4c-14.7 32.4-8.8 72 17.9 98.6 26.6 26.6 66.1 32.7 98.6 17.9 12.5 33.3 44.7 57.1 82.4 57.1s69.9-23.7 82.4-57.1c32.6 14.8 72 8.7 98.6-17.9 26.7-26.7 32.6-66.2 17.9-98.6 33.4-12.5 57.1-44.7 57.1-82.4zm-144.8-44.25L236.16 341.74c-4.31 4.28-11.28 4.25-15.55-.06l-75.72-76.33c-4.28-4.31-4.25-11.28.06-15.56l26.03-25.82c4.31-4.28 11.28-4.25 15.56.06l42.15 42.49 97.2-96.42c4.31-4.28 11.28-4.25 15.55.06l25.82 26.03c4.28 4.32 4.26 11.29-.06 15.56z" />
-                        </svg>
-                    </div>
-                    <div class="star-card-edit-button">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-                            <path class="app-icon edit-icon"
-                                d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z" />
-                        </svg>
-                    </div>
-                    <div class="star-card-delete-button">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
-                            <path class="app-icon delete-icon"
-                                d="M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 0 0 0 47.9-45L416 128H32z" />
-                        </svg>
+            <menu>
+                <div class="menu-item">
+                    Movies
+                    <div class="dropdown">
+                        <div class="option" id="import-movies-menu">Import...<span class="shortcut">Ctrl+I</span></div>
+                        <div class="option" id="search-movies-menu">Search...<span class=" shortcut">Ctrl+F</span></div>
                     </div>
                 </div>
-            </div>
-        </button>
-    </template>
-
-    <template id="thumbnail-template">
-        <div class="thumbnail">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="thumbnail-poster-icon">
-                <path class="thumbnail-icon poster-icon"
-                    d="M96 96L544 96L544 544L96 544L96 96zM144 416L144 480L208 480L208 416L144 416zM496 416L432 416L432 480L496 480L496 416zM144 288L144 352L208 352L208 288L144 288zM496 288L432 288L432 352L496 352L496 288zM144 160L144 224L208 224L208 160L144 160zM496 160L432 160L432 224L496 224L496 160z" />
-            </svg>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="thumbnail-delete-icon">
-                <path class="thumbnail-icon delete-icon"
-                    d="M320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM266.6 216.8L320 282.1L373.4 216.8C381.8 206.5 396.9 205 407.2 213.4C417.5 221.8 419 236.9 410.6 247.2L351 320L410.6 392.8C419 403.1 417.5 418.2 407.2 426.6C396.9 435 381.8 433.5 373.4 423.2L320 357.9L266.6 423.2C258.2 433.5 243.1 435 232.8 426.6C222.5 418.2 221 403.1 229.4 392.8L289 320L229.4 247.2C221 236.9 222.5 221.8 232.8 213.4C243.1 205 258.2 206.5 266.6 216.8z" />
-            </svg>
-            <img class="thumbnail-image" src="" />
-        </div>
-    </template>
-    <!----------------------------------------------------------------------- Movie template -->
-    <template id="movie-card-template">
-        <div class="movie-card">
-            <div class="movie-card-left">
-                <div class="movie-card-image-container">
-                    <img class="movie-card-image" src="" onerror="this.src='lin/default.png'" />
-                </div>
-            </div>
-            <div class="movie-card-right">
-                <div class="movie-card-row">
-                    <div class="movie-card-id"></div>
-                    <input type="text" class="movie-card-new-name"></input>
-                    <div class="movie-card-score-container">
-                        <Label>Score:
-                            <input type="text" inputmode="numeric" pattern="[0-9]*" name="movie-card-score" min="0" max="100000" step="100"
-                                class="movie-card-score"></input>
-                        </Label>
+                <div class="menu-item">
+                    Stars
+                    <div class="dropdown">
+                        <div class="option" id="add-star-menu">Add star...<span class="shortcut">Ctrl+S</span></div>
                     </div>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="movie-card-validate-icon">
-                        <path class="app-icon"
-                            d="M448 96L512 96L512 576L128 576L128 96L192 96L192 64L448 64L448 96zM377.4 281.9L291.8 399.6C272.5 379.6 258.1 364.7 248.6 354.9L214.1 388.2C220.3 394.6 241.3 416.3 277.2 453.5L297 474.1L313.8 451L416.2 310.2L430.3 290.8L391.5 262.6L377.4 282zM240 176L400 176L400 128L240 128L240 176z" />
+                </div>
+                <button id="confirm-import-movies-button" class="toolbar-button display-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="toolbar-icon">
+                        <path
+                            d="M352 64L352 32L288 32L288 306.7C284 302.7 273.3 292 256 274.7L210.7 320C218.9 328.2 247.8 357.1 297.3 406.6L320 429.3L429.3 320L384 274.7L352 306.7L352 64zM128 160L96 160L96 576L544 576L544 160L416 160L416 224L480 224L480 512L160 512L160 224L224 224L224 160L128 160z" />
                     </svg>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="movie-card-special-icon">
-                        <path class="app-icon"
-                            d="M512 256c0-37.7-23.7-69.9-57.1-82.4 14.7-32.4 8.8-71.9-17.9-98.6-26.7-26.7-66.2-32.6-98.6-17.9C325.9 23.7 293.7 0 256 0s-69.9 23.7-82.4 57.1c-32.4-14.7-72-8.8-98.6 17.9-26.7 26.7-32.6 66.2-17.9 98.6C23.7 186.1 0 218.3 0 256s23.7 69.9 57.1 82.4c-14.7 32.4-8.8 72 17.9 98.6 26.6 26.6 66.1 32.7 98.6 17.9 12.5 33.3 44.7 57.1 82.4 57.1s69.9-23.7 82.4-57.1c32.6 14.8 72 8.7 98.6-17.9 26.7-26.7 32.6-66.2 17.9-98.6zM367 .75L236 .75c-4 .01-8-.01-11 .06l42 .01c11 .01 20 .01 31-.01l100-.25z" />
+                    <span>Confirm import</span>
+                </button>
+
+            </menu>
+
+            <div id="stars" class="custom-scrollbar"></div>
+            <div id="movies" class="custom-scrollbar"></div>
+
+            <!-- Search dialog ----------------------------------------------------------------->
+            <dialog id="search-dialog">
+                <div id="search-dialog-header" class="dialog-header">Search movies</div>
+                <div id="search-dialog-body" class="dialog-body custom-scrollbar">
+                    <div class="top-row">
+                        <label for="search-disk">
+                            Disk:
+                            <input type="text" id="search-disk" name="search-disk" placeholder="Disk" />
+                        </label>
+                        <label for="search-container">
+                            Container:
+                            <input type="text" id="search-container" name="search-container" placeholder="Container" />
+                        </label>
+                        <label for="search-score">
+                            Score:
+                            <input type="number" id="search-score" name="search-score" placeholder="Score" />
+                        </label>
+                    </div>
+                    <div class="add-button-container">
+                        <div>Stars
+                            <button id="add-star-button">+</button>
+                        </div>
+                        <div id="stars-container"></div>
+                    </div>
+                    <div class="add-button-container">
+                        <div>Tags
+                            <button id="add-tag-button">+</button>
+                        </div>
+                        <div id="tags-container"></div>
+                    </div>
+
+                </div>
+                <div id="search-dialog-footer" class="dialog-footer">
+                    <button id="search-dialog-cancel-button" class="button">Cancel</button>
+                    <button id="search-dialog-search-button" class="button button-primary">Search</button>
+                </div>
+            </dialog>
+
+            <!-- Add star/tag dialog ----------------------------------------------------------------->
+            <dialog id="add-star-tag-dialog">
+                <div id="add-star-tag-dialog-header" class="dialog-header"></div>
+                <div id="add-star-tag-dialog-body" class="dialog-body custom-scrollbar">
+                    <select id="add-star-tag-dialog-select" multiple size="10" class="custom-scrollbar"></select>
+                </div>
+                <div id="add-star-tag-dialog-footer" class="dialog-footer">
+                    <button id="add-star-tag-dialog-cancel-button" class="button">Cancel</button>
+                    <button id="add-star-tag-dialog-ok-button" class="button button-primary">OK</button>
+                </div>
+            </dialog>
+
+            <!-- Disk/Container dialog ----------------------------------------------------------------->
+            <dialog id="disk-container-dialog">
+                <div id="disk-container-dialog-header" class="dialog-header">Input disk & container</div>
+                <div id="disk-container-dialog-body" class="dialog-body">
+                    <label for="disk-input">Disk:
+                        <input type="text" id="disk-input" name="disk-input"></input>
+                    </label>
+                    <label for="container-input">Container:
+                        <input type="text" id="container-input" name="container-input"></input>
+                    </label>
+                </div>
+                <div id="disk-container-dialog-footer" class="dialog-footer">
+                    <button id="disk-container-dialog-cancel-button" class="button">Cancel</button>
+                    <button id="disk-container-dialog-ok-button" class="button button-primary">OK</button>
+                </div>
+            </dialog>
+
+            <!-- New elements dialog ----------------------------------------------------------------->
+            <dialog id="new-elements-dialog">
+                <div id="new-elements-dialog-header" class="dialog-header">New Elements</div>
+                <div id="new-elements-dialog-body" class="dialog-body custom-scrollbar">
+                    <p id="new-elements-dialog-stars-message" class="new-elements-dialog-message">New Stars</p>
+                    <div id="new-stars-list" class="new-elements-list"></div>
+                    <p id="new-elements-dialog-tags-message" class="new-elements-dialog-message">New Tags</p>
+                    <div id="new-tags-list" class="new-elements-list"></div>
+                </div>
+                <div id="new-elements-dialog-footer" class="dialog-footer">
+                    <button id="new-elements-dialog-cancel-button" class="button">Cancel</button>
+                    <button id="new-elements-dialog-ok-button" class="button button-primary">OK</button>
+                </div>
+            </dialog>
+
+            <!-- Progress dialog ----------------------------------------------------------------->
+            <dialog id="progress-dialog">
+                <div id="progress-dialog-header" class="dialog-header">Progress dialog header</div>
+                <div id="progress-dialog-body" class="dialog-body">
+                    <p id="progress-dialog-message">Progress dialog message</p>
+                    <progress id="progress-bar" value="0" max="100"></progress>
+                </div>
+                <div id="progress-dialog-footer" class="dialog-footer">
+                    <button id="progress-dialog-ok-button" class="button button-primary">OK</button>
+                </div>
+            </dialog>
+
+            <!-- Info dialog ----------------------------------------------------------------->
+            <dialog id="info-dialog">
+                <div id="info-dialog-header" class="dialog-header">Info dialog header</div>
+                <div id="info-dialog-body" class="dialog-body custom-scrollbar">
+                    <p id="info-dialog-message">Info dialog message</p>
+                </div>
+                <div id="info-dialog-footer" class="dialog-footer">
+                    <button id="info-dialog-ok-button" class="button button-primary">OK</button>
+                </div>
+            </dialog>
+
+            <!-- Alert dialog ----------------------------------------------------------------->
+            <dialog id="alert-dialog">
+                <div id="alert-dialog-header" class="dialog-header">Alert dialog header</div>
+                <div id="alert-dialog-body" class="dialog-body">
+                    <p id="alert-dialog-message">Alert dialog message</p>
+                </div>
+                <div id="alert-dialog-footer" class="dialog-footer">
+                    <button id="alert-dialog-ok-button" class="button button-primary">OK</button>
+                </div>
+            </dialog>
+
+            <!-- Confirm dialog ----------------------------------------------------------------->
+            <dialog id="confirm-dialog">
+                <div id="confirm-dialog-header" class="dialog-header">confirm dialog header</div>
+                <div id="confirm-dialog-body" class="dialog-body">
+                    <p id="confirm-dialog-message">confirm dialog message</p>
+                </div>
+                <div id="confirm-dialog-footer" class="dialog-footer">
+                    <button id="confirm-dialog-ok-button" class="button button-primary">OK</button>
+                    <button id="confirm-dialog-cancel-button" class="button">Cancel</button>
+                </div>
+            </dialog>
+        </main>
+
+        <!----------------------------------------------------------------------- New element row template -->
+        <template id="new-element-row-template">
+            <div class="new-element-row">
+                <input type="text" class="new-element-name"></input>
+                <input type="number" class="new-element-score" name="new-element-score" min="0" max="100000" step="1000" value="1000">
+                <div class="new-element-button-container">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                        <path class="app-icon special-icon"
+                            d="M512 256c0-37.7-23.7-69.9-57.1-82.4 14.7-32.4 8.8-71.9-17.9-98.6-26.7-26.7-66.2-32.6-98.6-17.9C325.9 23.7 293.7 0 256 0s-69.9 23.7-82.4 57.1c-32.4-14.7-72-8.8-98.6 17.9-26.7 26.7-32.6 66.2-17.9 98.6C23.7 186.1 0 218.3 0 256s23.7 69.9 57.1 82.4c-14.7 32.4-8.8 72 17.9 98.6 26.6 26.6 66.1 32.7 98.6 17.9 12.5 33.3 44.7 57.1 82.4 57.1s69.9-23.7 82.4-57.1c32.6 14.8 72 8.7 98.6-17.9 26.7-26.7 32.6-66.2 17.9-98.6 33.4-12.5 57.1-44.7 57.1-82.4zm-144.8-44.25L236.16 341.74c-4.31 4.28-11.28 4.25-15.55-.06l-75.72-76.33c-4.28-4.31-4.25-11.28.06-15.56l26.03-25.82c4.31-4.28 11.28-4.25 15.56.06l42.15 42.49 97.2-96.42c4.31-4.28 11.28-4.25 15.55.06l25.82 26.03c4.28 4.32 4.26 11.29-.06 15.56z" />
                     </svg>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="movie-card-delete-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
                         <path class="app-icon delete-icon"
-                            d="M320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM266.6 216.8L320 282.1L373.4 216.8C381.8 206.5 396.9 205 407.2 213.4C417.5 221.8 419 236.9 410.6 247.2L351 320L410.6 392.8C419 403.1 417.5 418.2 407.2 426.6C396.9 435 381.8 433.5 373.4 423.2L320 357.9L266.6 423.2C258.2 433.5 243.1 435 232.8 426.6C222.5 418.2 221 403.1 229.4 392.8L289 320L229.4 247.2C221 236.9 222.5 221.8 232.8 213.4C243.1 205 258.2 206.5 266.6 216.8z" />
+                            d="M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 0 0 0 47.9-45L416 128H32z" />
                     </svg>
                 </div>
-                <div class="movie-card-row">
-                    <div class="movie-card-name"></div>
-                </div>
-                <div class="movie-card-row">
-                    <span>Disk: </span><span class="movie-card-disk"></span>
-                    <span>Container: </span><span class="movie-card-container"></span>
-                </div>
-                <div class="movie-card-row">
-                    <span>Size: </span><span class="movie-card-size accent"></span>
-                    <span>Dimensions: </span><span class="movie-card-dimensions accent"></span>
-                    <span>Length: </span><span class="movie-card-duration accent"></span>
-                    <span>FPS: </span><span class="movie-card-fps accent"></span>
-                </div>
-                <div class="movie-card-row">
-                    <span>Codec: </span><span class="movie-card-codec"></span>
-                </div>
-                <div class="add-button-container">
-                    <button class="add-star-button">+</button>
-                    <div class="stars-container"></div>
-                </div>
-                <div class="add-button-container">
-                    <button class="add-tag-button">+</button>
-                    <div class="tags-container"></div>
-                </div>
             </div>
-            <div class="movie-card-thumbnails"></div>
-        </div>
-    </template>
-</body>
+        </template>
+
+        <!----------------------------------------------------------------------- Star card template -->
+        <template id="star-card-template">
+            <button class="star-card">
+                <div class="star-card-image-container">
+                    <img class="star-card-image" src="" />
+                </div>
+                <div class="star-card-top">
+                    <div class="star-card-id"></div>
+                    <h3 class="star-card-name"></h3>
+                </div>
+                <div class="star-card-bottom">
+                    <div class="star-card-score-container">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
+                                <path class="app-icon score-icon"
+                                    d="M288 32C128.94 32 0 160.94 0 320c0 52.8 14.25 102.26 39.06 144.8 5.61 9.62 16.3 15.2 27.44 15.2h443c11.14 0 21.83-5.58 27.44-15.2C561.75 422.26 576 372.8 576 320c0-159.06-128.94-288-288-288zm163.2 174.41L342.65 351.14c5.81 9.63 9.35 20.79 9.35 32.86 0 11.72-3.38 22.55-8.88 32H232.88c-5.5-9.45-8.88-20.28-8.88-32 0-35.35 28.65-64 64-64 5.65 0 11.02.96 16.24 2.34L412.8 177.59c7.98-10.56 23-12.72 33.61-4.8 10.59 7.96 12.75 23.01 4.79 33.62z" />
+                            </svg>
+                        </span>
+                        <span class="star-card-score"></span>
+                    </div>
+                    <div class="star-card-movies-container">
+                        <span>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                                <path class="app-icon movies-icon"
+                                    d="M488 64h-8v20c0 6.6-5.4 12-12 12h-40c-6.6 0-12-5.4-12-12V64H96v20c0 6.6-5.4 12-12 12H44c-6.6 0-12-5.4-12-12V64h-8C10.7 64 0 74.7 0 88v336c0 13.3 10.7 24 24 24h8v-20c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v20h320v-20c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v20h8c13.3 0 24-10.7 24-24V88c0-13.3-10.7-24-24-24zM96 372c0 6.6-5.4 12-12 12H44c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40zm0-96c0 6.6-5.4 12-12 12H44c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40zm0-96c0 6.6-5.4 12-12 12H44c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40zm384 192c0 6.6-5.4 12-12 12h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40zm0-96c0 6.6-5.4 12-12 12h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40zm0-96c0 6.6-5.4 12-12 12h-40c-6.6 0-12-5.4-12-12v-40c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12v40z" />
+                            </svg>
+                        </span>
+                        <span class="star-card-movies"></span>
+                    </div>
+                    <div class="app-icons">
+                        <div class="star-card-special">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                                <path class="app-icon special-icon"
+                                    d="M512 256c0-37.7-23.7-69.9-57.1-82.4 14.7-32.4 8.8-71.9-17.9-98.6-26.7-26.7-66.2-32.6-98.6-17.9C325.9 23.7 293.7 0 256 0s-69.9 23.7-82.4 57.1c-32.4-14.7-72-8.8-98.6 17.9-26.7 26.7-32.6 66.2-17.9 98.6C23.7 186.1 0 218.3 0 256s23.7 69.9 57.1 82.4c-14.7 32.4-8.8 72 17.9 98.6 26.6 26.6 66.1 32.7 98.6 17.9 12.5 33.3 44.7 57.1 82.4 57.1s69.9-23.7 82.4-57.1c32.6 14.8 72 8.7 98.6-17.9 26.7-26.7 32.6-66.2 17.9-98.6 33.4-12.5 57.1-44.7 57.1-82.4zm-144.8-44.25L236.16 341.74c-4.31 4.28-11.28 4.25-15.55-.06l-75.72-76.33c-4.28-4.31-4.25-11.28.06-15.56l26.03-25.82c4.31-4.28 11.28-4.25 15.56.06l42.15 42.49 97.2-96.42c4.31-4.28 11.28-4.25 15.55.06l25.82 26.03c4.28 4.32 4.26 11.29-.06 15.56z" />
+                            </svg>
+                        </div>
+                        <div class="star-card-edit-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                                <path class="app-icon edit-icon"
+                                    d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z" />
+                            </svg>
+                        </div>
+                        <div class="star-card-delete-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                                <path class="app-icon delete-icon"
+                                    d="M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 0 0 0 47.9-45L416 128H32z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </button>
+        </template>
+
+        <!----------------------------------------------------------------------- Thumbnail template -->
+        <template id="thumbnail-template">
+            <div class="thumbnail">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="thumbnail-poster-icon">
+                    <path class="thumbnail-icon poster-icon"
+                        d="M96 96L544 96L544 544L96 544L96 96zM144 416L144 480L208 480L208 416L144 416zM496 416L432 416L432 480L496 480L496 416zM144 288L144 352L208 352L208 288L144 288zM496 288L432 288L432 352L496 352L496 288zM144 160L144 224L208 224L208 160L144 160zM496 160L432 160L432 224L496 224L496 160z" />
+                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="thumbnail-delete-icon">
+                    <path class="thumbnail-icon delete-icon"
+                        d="M320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM266.6 216.8L320 282.1L373.4 216.8C381.8 206.5 396.9 205 407.2 213.4C417.5 221.8 419 236.9 410.6 247.2L351 320L410.6 392.8C419 403.1 417.5 418.2 407.2 426.6C396.9 435 381.8 433.5 373.4 423.2L320 357.9L266.6 423.2C258.2 433.5 243.1 435 232.8 426.6C222.5 418.2 221 403.1 229.4 392.8L289 320L229.4 247.2C221 236.9 222.5 221.8 232.8 213.4C243.1 205 258.2 206.5 266.6 216.8z" />
+                </svg>
+                <img class="thumbnail-image" src="" />
+            </div>
+        </template>
+
+        <!----------------------------------------------------------------------- Movie template -->
+        <template id="movie-card-template">
+            <div class="movie-card">
+                <div class="movie-card-left">
+                    <div class="movie-card-image-container">
+                        <img class="movie-card-image" src="" onerror="this.src='lin/default.png'" />
+                    </div>
+                </div>
+                <div class="movie-card-right">
+                    <div class="movie-card-row">
+                        <div class="movie-card-id"></div>
+                        <input type="text" class="movie-card-new-name"></input>
+                        <div class="movie-card-score-container">
+                            <Label>Score:
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" name="movie-card-score" min="0" max="100000" step="100"
+                                    class="movie-card-score"></input>
+                            </Label>
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="movie-card-validate-icon">
+                            <path class="app-icon"
+                                d="M448 96L512 96L512 576L128 576L128 96L192 96L192 64L448 64L448 96zM377.4 281.9L291.8 399.6C272.5 379.6 258.1 364.7 248.6 354.9L214.1 388.2C220.3 394.6 241.3 416.3 277.2 453.5L297 474.1L313.8 451L416.2 310.2L430.3 290.8L391.5 262.6L377.4 282zM240 176L400 176L400 128L240 128L240 176z" />
+                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="movie-card-special-icon">
+                            <path class="app-icon"
+                                d="M512 256c0-37.7-23.7-69.9-57.1-82.4 14.7-32.4 8.8-71.9-17.9-98.6-26.7-26.7-66.2-32.6-98.6-17.9C325.9 23.7 293.7 0 256 0s-69.9 23.7-82.4 57.1c-32.4-14.7-72-8.8-98.6 17.9-26.7 26.7-32.6 66.2-17.9 98.6C23.7 186.1 0 218.3 0 256s23.7 69.9 57.1 82.4c-14.7 32.4-8.8 72 17.9 98.6 26.6 26.6 66.1 32.7 98.6 17.9 12.5 33.3 44.7 57.1 82.4 57.1s69.9-23.7 82.4-57.1c32.6 14.8 72 8.7 98.6-17.9 26.7-26.7 32.6-66.2 17.9-98.6zM367 .75L236 .75c-4 .01-8-.01-11 .06l42 .01c11 .01 20 .01 31-.01l100-.25z" />
+                        </svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="movie-card-delete-icon">
+                            <path class="app-icon delete-icon"
+                                d="M320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64C178.6 64 64 178.6 64 320C64 461.4 178.6 576 320 576zM266.6 216.8L320 282.1L373.4 216.8C381.8 206.5 396.9 205 407.2 213.4C417.5 221.8 419 236.9 410.6 247.2L351 320L410.6 392.8C419 403.1 417.5 418.2 407.2 426.6C396.9 435 381.8 433.5 373.4 423.2L320 357.9L266.6 423.2C258.2 433.5 243.1 435 232.8 426.6C222.5 418.2 221 403.1 229.4 392.8L289 320L229.4 247.2C221 236.9 222.5 221.8 232.8 213.4C243.1 205 258.2 206.5 266.6 216.8z" />
+                        </svg>
+                    </div>
+                    <div class="movie-card-row">
+                        <div class="movie-card-name"></div>
+                    </div>
+                    <div class="movie-card-row">
+                        <span>Disk: </span><span class="movie-card-disk"></span>
+                        <span>Container: </span><span class="movie-card-container"></span>
+                    </div>
+                    <div class="movie-card-row">
+                        <span>Size: </span><span class="movie-card-size accent"></span>
+                        <span>Dimensions: </span><span class="movie-card-dimensions accent"></span>
+                        <span>Length: </span><span class="movie-card-duration accent"></span>
+                        <span>FPS: </span><span class="movie-card-fps accent"></span>
+                    </div>
+                    <div class="movie-card-row">
+                        <span>Codec: </span><span class="movie-card-codec"></span>
+                    </div>
+                    <div class="add-button-container">
+                        <button class="add-star-button">+</button>
+                        <div class="stars-container"></div>
+                    </div>
+                    <div class="add-button-container">
+                        <button class="add-tag-button">+</button>
+                        <div class="tags-container"></div>
+                    </div>
+                </div>
+                <div class="movie-card-thumbnails"></div>
+            </div>
+        </template>
+
+        <!----------------------------------------------------------------------- Badge template -->
+        <template id="badge-template">
+            <span class="movie-card-badge clickable"></span>
+        </template>
+
+    </body>
 
 </html>
