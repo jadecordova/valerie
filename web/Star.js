@@ -5,15 +5,18 @@ class Star {
         name = null,
         score = 0,
         special = false,
-        movies = 0
+        movies = 0,
+        edited = false,
     } = {}) {
         this.id = id;
         this.name = name;
         this.score = score;
         this.special = special;
         this.movies = movies;
+        this.edited = edited;
         this.card = null;
 
+        this.GetStarCardElements();
         this.CreateStarCard();
     }
 
@@ -23,31 +26,116 @@ class Star {
             name: this.name,
             score: this.score,
             special: this.special,
-            movies: this.movies
-        };
+            movies: this.movies,
+            edited: this.edited
+        }
+    }
+
+    GetStarCardElements() {
+
+        this.card = UI.GetElementFromTemplate('star-card-template');
+        this.idContainer = this.card.querySelector('.star-card-id');
+        this.nameContainer = this.card.querySelector('.star-card-name');
+        this.scoreContainer = this.card.querySelector('.star-card-score');
+        this.moviesContainer = this.card.querySelector('.star-card-movies');
+        this.imageContainer = this.card.querySelector('.star-card-image');
+        this.specialIcon = this.card.querySelector('.star-card-special-icon');
+        this.editIcon = this.card.querySelector('.star-card-edit-icon');
+        this.deleteIcon = this.card.querySelector('.star-card-delete-icon');
+        this.cleanEditedStatusButton = this.card.querySelector('.star-card-top');
     }
 
     CreateStarCard() {
-        const starCard = UI.GetElementFromTemplate('star-card-template');
-        starCard.starId = this.id; // Store the star ID on the card element for easy access
-        starCard.querySelector('.star-card-name').textContent = this.name;
-        starCard.querySelector('.star-card-id').textContent = this.id;
-        starCard.querySelector('.star-card-score').textContent = this.score;
-        starCard.querySelector('.star-card-movies').textContent = this.movies;
-        starCard.querySelector('.star-card-image').src = `${UI.StarThumbsPath}${this.id}`;
-        if (this.special) starCard.querySelector('.star-card-special').classList.add('special-star');
-        this.card = starCard;
+        this.card.starId = this.id; // Store the star ID on the card element for easy access
+        this.nameContainer.textContent = this.name;
+        this.idContainer.textContent = this.id;
+        this.scoreContainer.textContent = this.score;
+        this.moviesContainer.textContent = this.movies;
+        this.imageContainer.src = `${UI.StarThumbsPath}${this.id}`;
+        if (this.special) this.specialIcon.classList.add('special-star');
+        if (this.edited) this.card.classList.add('edited');
+
+        this.InitStarCardSpecialIcon();
+        this.InitStarCardEditIcon();
+        this.InitStarCardDeleteIcon();
+        this.InitStarCardCleanEditedStatus();
     }
 
-    SetSpecial(isSpecial) {
-        this.special = !!isSpecial;
-        if (!this.card) return;
-        const el = this.card.querySelector('.star-card-special');
-        if (el) el.classList.toggle('special-star', this.special);
+    InitStarCardCleanEditedStatus() {
+        this.cleanEditedStatusButton.addEventListener('click', async () => {
+            if (!this.edited) return;
+            const confirmed = await UI.ShowConfirmDialog('Clean Edited Status', `Are you sure you want to clean the edited status for star "${this.name}"?`);
+            if (!confirmed) return;
+            const result = await eel.Clean_Edited_Status(this.id)();
+            if (result) {
+                this.edited = false;
+                this.card.classList.remove('edited');
+            } else {
+                console.error('Failed to clean edited status for star:', this.name);
+            }
+        });
     }
 
-    CreateBadge() {
-        return UI.CreateBadge(this);
+    InitStarCardDeleteIcon() {
+        this.deleteIcon.addEventListener('click', async () => {
+            const confirmed = await UI.ShowConfirmDialog('Delete Star', `Are you sure you want to delete star "${this.name}"?`);
+            if (!confirmed) return;
+            const result = await eel.Delete_Star(this.id)();
+            if (result) {
+                this.card.remove();
+                Star.stars = Star.stars.filter(s => s.id !== this.id);
+                Star.CreateScoreMap();
+            } else {
+                console.error('Failed to delete star:', this.name);
+            }
+        });
+    }
+
+    InitStarCardEditIcon() {
+        this.editIcon.addEventListener('click', () => {
+            UI.ShowEditStarDialog(this);
+        });
+    }
+
+    InitStarCardSpecialIcon() {
+        this.specialIcon.addEventListener('click', async () => {
+            this.special = !this.special;
+            this.specialIcon.classList.toggle('special-star');
+            const result = await eel.Set_Special_Status(this.id, this.special)();
+            if (!result) {
+                console.error('Failed to update special status:');
+                this.special = !this.special;
+                this.specialIcon.classList.toggle('special-star');
+            }
+        });
+    }
+
+    Update(data) {
+        this.name = data.name;
+        this.score = data.score;
+        this.movies = data.movies;
+        this.special = data.special;
+        this.edited = data.edited;
+        this.card.classList.add('edited');
+        this.UpdateCard();
+        Star.CreateScoreMap();
+        console.log(this);
+    }
+
+    UpdateCard() {
+        this.nameContainer.textContent = this.name;
+        this.scoreContainer.textContent = this.score;
+        this.moviesContainer.textContent = this.movies;
+        if (this.special) {
+            this.specialIcon.classList.add('special-star');
+        } else {
+            this.specialIcon.classList.remove('special-star');
+        }
+    }
+
+
+    CreateBadge(movie) {
+        return UI.CreateBadge(this, movie);
     }
 
     //-------------------------------------------------------------------------------------------------------
@@ -112,5 +200,4 @@ class Star {
         Star.CreateScoreMap();
         Star.ShowStarCards();
     }
-
 }

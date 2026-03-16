@@ -26,6 +26,7 @@ class UI {
         UI.importMoviesMenu = document.getElementById('import-movies-menu');
         UI.confirmImportMoviesButton = document.getElementById('confirm-import-movies-button');
         UI.searchMoviesMenu = document.getElementById('search-movies-menu');
+        UI.setDiskContainerMenu = document.getElementById('set-disk-container-menu');
         UI.addStarMenu = document.getElementById('add-star-menu');
 
         // Disk and container dialog
@@ -34,7 +35,8 @@ class UI {
         UI.diskInput = document.getElementById('disk-input');
         UI.containerInput = document.getElementById('container-input');
         UI.diskContainerDialogCancelButton = document.getElementById('disk-container-dialog-cancel-button');
-        UI.diskContainerDialogOKButton = document.getElementById('disk-container-dialog-ok-button');
+        UI.diskContainerDialogImportButton = document.getElementById('disk-container-dialog-ok-button');
+        UI.diskContainerDialogSetButton = document.getElementById('disk-container-dialog-set-button');
 
         // Progress dialog
         UI.progressDialog = document.getElementById('progress-dialog');
@@ -79,17 +81,59 @@ class UI {
         UI.infoDialogMessage = document.getElementById('info-dialog-message');
         UI.infoDialogOKButton = document.getElementById('info-dialog-ok-button');
 
+        // Search dialog
+        UI.searchDialog = document.getElementById('search-dialog');
+        UI.searchDialogDisk = UI.searchDialog.querySelector('#search-disk');
+        UI.searchDialogContainer = UI.searchDialog.querySelector('#search-container');
+        UI.searchDialogScore = UI.searchDialog.querySelector('#search-score');
+        UI.searchDialogStars = UI.searchDialog.querySelector('#stars-container');
+        UI.searchDialogTags = UI.searchDialog.querySelector('#tags-container');
+        UI.searchDialogAddStarButton = UI.searchDialog.querySelector('#add-star-button');
+        UI.searchDialogAddTagButton = UI.searchDialog.querySelector('#add-tag-button');
+        UI.searchDialogSearchButton = UI.searchDialog.querySelector('#search-dialog-search-button');
+        UI.searchDialogCancelButton = UI.searchDialog.querySelector('#search-dialog-cancel-button');
+
+        // Edit star dialog
+        UI.editStarDialog = document.getElementById('edit-star-dialog');
+        UI.editStarDialogName = document.getElementById('edit-star-dialog-name');
+        UI.editStarDialogImage = document.getElementById('edit-star-dialog-image');
+        UI.editStarDialogScore = document.getElementById('edit-star-dialog-score');
+        UI.editStarDialogMovies = document.getElementById('edit-star-dialog-movies');
+        UI.editStarDialogSpecial = document.getElementById('edit-star-dialog-special');
+        UI.editStarDialogCancelButton = document.getElementById('edit-star-dialog-cancel-button');
+        UI.editStarDialogOKButton = document.getElementById('edit-star-dialog-ok-button');
     }
 
     // Menu items
     static InitMenu() {
         UI.InitImportMoviesMenu();
+        UI.InitSearchMoviesMenu();
+        UI.InitSetDiskContainerMenu();
+        UI.InitAddStarMenu();
         UI.InitKeyboardShortcuts();
+    }
+
+    static InitAddStarMenu() {
+        UI.addStarMenu.addEventListener('click', () => {
+            UI.ShowEditStarDialog(new Star({}));
+        });
+    }
+
+    static InitSetDiskContainerMenu() {
+        UI.setDiskContainerMenu.addEventListener('click', () => {
+            UI.ShowDialog(UI.diskContainerDialog);
+        });
     }
 
     static InitImportMoviesMenu() {
         UI.importMoviesMenu.addEventListener('click', () => {
             UI.ShowDialog(UI.diskContainerDialog);
+        });
+    }
+
+    static InitSearchMoviesMenu() {
+        UI.searchMoviesMenu.addEventListener('click', () => {
+            UI.ShowDialog(UI.searchDialog);
         });
     }
 
@@ -103,13 +147,22 @@ class UI {
                 e.preventDefault();
                 UI.ShowDialog(UI.searchDialog);
             }
+            else if (e.ctrlKey && e.key === 'd') {
+                e.preventDefault();
+                UI.ShowDialog(UI.diskContainerDialog);
+            }
+            else if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                UI.ShowEditStarDialog(new Star({}));
+            }
         });
     }
 
     // Disk and container dialog
     static InitDiskContainerDialog() {
         UI.InitDiskContainerDialogCancelButton();
-        UI.InitDiskContainerDialogOKButton();
+        UI.InitDiskContainerDialogImportButton();
+        UI.InitDiskContainerDialogSetButton();
     }
 
     static InitDiskContainerDialogCancelButton() {
@@ -118,8 +171,16 @@ class UI {
         });
     }
 
-    static InitDiskContainerDialogOKButton() {
-        UI.diskContainerDialogOKButton.addEventListener('click', async () => {
+    static InitDiskContainerDialogSetButton() {
+        UI.diskContainerDialogSetButton.addEventListener('click', () => {
+            Movie.disk = UI.diskInput.value.trim();
+            Movie.container = UI.containerInput.value.trim();
+            UI.HideDialog(UI.diskContainerDialog);
+        });
+    }
+
+    static InitDiskContainerDialogImportButton() {
+        UI.diskContainerDialogImportButton.addEventListener('click', async () => {
             Movie.disk = UI.diskInput.value.trim();
             Movie.container = UI.containerInput.value.trim();
             if (Movie.disk && Movie.container) {
@@ -268,7 +329,6 @@ class UI {
         const newTags = UI.GetNewTagsFromDialog();
 
         try {
-            //TODO: Check what the Add_New_Elements function is expecting now that we're passing full objects instead of just names. NEEDS UPDATE.
             const result = await eel.Add_New_Elements(newStars, newTags)();
             if (result && result.error) {
                 UI.ShowAlertDialog("Error", result.error);
@@ -295,7 +355,6 @@ class UI {
             if (starName) {
                 const isSpecial = row.querySelector('.special-icon').parentElement.classList.contains('new-star-special');
                 const score = parseInt(row.querySelector('.new-element-score').value) || 0;
-                //TODO: We're now returning a full star object. NEEDS UPDATE.
                 newStars.push(new Star({ name: starName, special: isSpecial, score: score, movies: 0 }));
             }
         });
@@ -309,17 +368,29 @@ class UI {
             const tagName = row.querySelector('.new-element-name').value.trim();
             if (tagName) {
                 const score = parseInt(row.querySelector('.new-element-score').value) || 0;
-                //TODO: We're now returning a full tag object. NEEDS UPDATE.
                 newTags.push(new Tag({ tag: tagName, score: score }));
             }
         });
         return newTags;
     }
 
-    static CreateBadge(objectRef) {
+    static CreateBadge(objectRef, movie) {
         const badge = UI.GetElementFromTemplate('badge-template');
+        if (objectRef.edited) {
+            badge.classList.add('edited');
+        }
         badge.objectRef = objectRef;
         badge.textContent = objectRef.name || objectRef.tag;
+        badge.addEventListener('click', event => {
+            if (event.ctrlKey) {
+                badge.remove();
+                const type = objectRef instanceof Star ? 'stars' : 'tags';
+                if (movie) {
+                    movie[type] = movie[type].filter(el => el !== objectRef);
+                    movie?.UpdateInfo();
+                }
+            }
+        });
         return badge;
     }
 
@@ -331,6 +402,7 @@ class UI {
             Movie.movies.forEach(movie => {
                 payload.push(movie.Export());
             });
+
             const failedMovies = payload.filter(movie => !movie.success);
             if (failedMovies.length) {
                 const confirm = await UI.ShowConfirmDialog('Fialed movies', 'There are invalid movies in the container. They will be removed.');
@@ -338,16 +410,19 @@ class UI {
                 failedMovies.forEach(movie => {
                     if (!movie.success) {
                         Movie.movies.find(m => m.id === movie.id).card.remove();
-                        payload = UI.RemoveById(payload, movie.id);
+                        payload = Utils.RemoveById(payload, movie.id);
                     }
                 });
                 console.log('payload', payload);
             }
+
             const renamed = await eel.Rename_Movies(payload, Movie.folder)();
             const result = await eel.Insert_Movies(renamed)();
+
             Star.RefreshStars();
-            console.log('Result: ', result);
+
             await UI.ShowImportResultsDialog(result);
+
             const moviesToGenerate = result.successful.map(m => m.name);
             const thumbsResult = await eel.Generate_Thumbnails(moviesToGenerate, Movie.folder)();
             if (thumbsResult && thumbsResult.status === 'started') {
@@ -379,14 +454,14 @@ class UI {
     static InitAddStarTagDialogOKButton() {
         UI.addStarTagDialogOKButton.addEventListener('click', () => {
             const selected = [...UI.addStarTagDialogSelect.selectedOptions].map(option => option.objectRef);
+            console.log('selected', selected);
             if (selected.length) {
                 selected.forEach(el => {
                     UI.addStarTagDialog.items?.push(el);
-                    const badge = el.CreateBadge();
+                    const badge = el.CreateBadge(UI.addStarTagDialog.movie);
                     UI.addStarTagDialog.container.appendChild(badge);
                 });
-                UI.addStarTagDialog.movie?.CalculateScore();
-                UI.addStarTagDialog.movie?.CreateNewName();
+                UI.addStarTagDialog.movie?.UpdateInfo();
                 UI.HideDialog(UI.addStarTagDialog);
             }
         });
@@ -443,6 +518,183 @@ class UI {
         UI.infoDialog.showModal();
     }
 
+    // Import results dialog
+    static ShowImportResultsDialog(data) {
+        UI.infoDialogHeader.textContent = 'Import Results';
+
+        const summary = document.createElement('div');
+        summary.classList.add('import-results-summary');
+        summary.innerHTML = `
+            <p>Successful Imports: ${data.successful.length}</p>
+            <p>Failed Renames: ${data.failedRename.length}</p>
+            <p>Failed Inserts: ${data.failedInsert.length}</p>
+        `;
+
+        if (data.successful.length) {
+            summary.appendChild(UI.CreateImportResultsDataBlock(data.successful, 'Successful Imports'));
+        }
+        if (data.failedRename.length) {
+            summary.appendChild(UI.CreateImportResultsDataBlock(data.failedRename, 'Failed Renames'));
+        }
+        if (data.failedInsert.length) {
+            summary.appendChild(UI.CreateImportResultsDataBlock(data.failedInsert, 'Failed Inserts'));
+        }
+
+        UI.infoDialogMessage.innerHTML = '';
+        UI.infoDialogMessage.appendChild(summary);
+        return new Promise((resolve) => {
+            UI.infoDialogOKButton.addEventListener('click', () => {
+                UI.HideDialog(UI.infoDialog);
+                resolve(true);
+            });
+            UI.infoDialog.showModal();
+        });
+    }
+
+    static CreateImportResultsDataBlock(elements, blockTitle) {
+        const fragment = document.createDocumentFragment();
+        const header = document.createElement('h4');
+        const rule = document.createElement('hr');
+        header.textContent = blockTitle;
+        fragment.appendChild(header);
+        fragment.appendChild(rule);
+        elements.forEach(el => {
+            const div = document.createElement('div');
+            div.classList.add('import-results-data-item');
+            div.textContent = el.name || el.originalName || el;
+            fragment.appendChild(div);
+        });
+        return fragment;
+    }
+
+    // Search dialog
+    static InitSearchDialog() {
+        UI.InitSearchDialogAddStarButton();
+        UI.InitSearchDialogAddTagButton();
+        UI.InitSearchDialogCancelButton();
+        UI.InitSearchDialogSearchButton();
+    }
+
+    static InitSearchDialogAddStarButton() {
+        UI.searchDialogAddStarButton.addEventListener('click', () => {
+            UI.PopulateAddStarTagDialogSelect('stars');
+            UI.ShowAddStarTagDialog(null, UI.searchDialogStars, null);
+        });
+    }
+
+    static InitSearchDialogAddTagButton() {
+        UI.searchDialogAddTagButton.addEventListener('click', () => {
+            UI.PopulateAddStarTagDialogSelect('tags');
+            UI.ShowAddStarTagDialog(null, UI.searchDialogTags, null);
+        });
+    }
+
+    static InitSearchDialogCancelButton() {
+        UI.searchDialogCancelButton.addEventListener('click', () => {
+            UI.HideDialog(UI.searchDialog);
+        });
+    }
+
+    static InitSearchDialogSearchButton() {
+        UI.searchDialogSearchButton.addEventListener('click', async () => {
+            const searchValues = UI.GetSearchDialogValues();
+            console.log('Search values:', searchValues);
+            const result = await eel.Get_Movies(
+                searchValues.stars,
+                searchValues.tags,
+                searchValues.score,
+                searchValues.disk,
+                searchValues.container)();
+            console.log('Search results:', result);
+            if (result && result.length) {
+                Movie.movies = result.map(m => {
+                    m.stars = m.star_ids.map(s => Star.GetStarById(s));
+                    m.tags = m.tag_ids.map(s => Tag.GetTagById(s));
+                    return new Movie(m)
+                });
+                UI.HideDialog(UI.searchDialog);
+                Movie.ShowMovies();
+            }
+            else {
+                UI.ShowAlertDialog("No Results", "No movies found matching the search criteria.");
+            }
+        });
+    }
+
+    static GetSearchDialogValues() {
+        const disk = UI.searchDialogDisk.value.trim();
+        const container = UI.searchDialogContainer.value.trim();
+        const score = parseInt(UI.searchDialogScore.value) || 0;
+        const stars = [...UI.searchDialogStars.querySelectorAll('.movie-card-badge')].map(badge => Number(badge.objectRef.id));
+        const tags = [...UI.searchDialogTags.querySelectorAll('.movie-card-badge')].map(badge => Number(badge.objectRef.id));
+        return { disk, container, score, stars, tags };
+    }
+
+    // Edit star dialog
+    static InitEditStarDialog() {
+        UI.InitEditStarDialogCancelButton();
+        UI.InitEditStarDialogOKButton();
+        UI.InitEditStarDialogSpecialButton();
+    }
+
+    static InitEditStarDialogCancelButton() {
+        UI.editStarDialogCancelButton.addEventListener('click', () => {
+            UI.HideDialog(UI.editStarDialog);
+        });
+    }
+
+    static InitEditStarDialogSpecialButton() {
+        UI.editStarDialogSpecial.addEventListener('click', () => {
+            UI.editStarDialogSpecial.classList.toggle('special-star');
+        });
+    }
+
+    static InitEditStarDialogOKButton() {
+        UI.editStarDialogOKButton.addEventListener('click', async () => {
+            if (!UI.editStarDialogName.value.trim()) {
+                UI.ShowAlertDialog("Error", "Star name cannot be empty.");
+                return;
+            }
+            const newStar = !UI.editStarDialog.star.id;
+            const payload = {
+                id: UI.editStarDialog.star.id,
+                name: UI.editStarDialogName.value.trim(),
+                score: parseInt(UI.editStarDialogScore.value) || 0,
+                movies: parseInt(UI.editStarDialogMovies.value) || 0,
+                special: UI.editStarDialogSpecial.classList.contains('special-star'),
+                edited: true
+            };
+            const result = await eel.Add_Edit_Star(payload)();
+            if (result && !result.error) {
+                if (newStar) {
+                    Star.stars.push(new Star(result));
+                    Star.ShowStarCards();
+                }
+                else {
+                    UI.editStarDialog.star.Update(result);
+                }
+                Star.CreateScoreMap();
+            }
+            UI.HideDialog(UI.editStarDialog);
+        });
+    }
+
+    static ShowEditStarDialog(star) {
+        UI.editStarDialog.star = star;
+        UI.editStarDialogName.value = star.name;
+        UI.editStarDialogScore.value = star.score;
+        UI.editStarDialogImage.src = `${UI.StarThumbsPath}${star.id}`;
+        UI.editStarDialogMovies.value = star.movies;
+        if (star.special) {
+            UI.editStarDialogSpecial.classList.add('special-star');
+        }
+        else {
+            UI.editStarDialogSpecial.classList.remove('special-star');
+        }
+        UI.editStarDialog.showModal();
+    }
+
+
     static Init() {
         UI.GetElements();
         UI.InitMenu();
@@ -452,6 +704,8 @@ class UI {
         UI.InitNewElementsDialog();
         UI.InitAddStarTagDialog();
         UI.InitConfirmImportButton();
+        UI.InitSearchDialog();
+        UI.InitEditStarDialog();
     }
 
 }

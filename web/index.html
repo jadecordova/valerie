@@ -22,6 +22,8 @@
                     <div class="dropdown">
                         <div class="option" id="import-movies-menu">Import...<span class="shortcut">Ctrl+I</span></div>
                         <div class="option" id="search-movies-menu">Search...<span class=" shortcut">Ctrl+F</span></div>
+                        <hr>
+                        <div class="option" id="set-disk-container-menu">Set disk & container...<span class=" shortcut">Ctrl+D</span></div>
                     </div>
                 </div>
                 <div class="menu-item">
@@ -106,7 +108,8 @@
                 </div>
                 <div id="disk-container-dialog-footer" class="dialog-footer">
                     <button id="disk-container-dialog-cancel-button" class="button">Cancel</button>
-                    <button id="disk-container-dialog-ok-button" class="button button-primary">OK</button>
+                    <button id="disk-container-dialog-set-button" class="button button-primary">Set</button>
+                    <button id="disk-container-dialog-ok-button" class="button button-primary">Import</button>
                 </div>
             </dialog>
 
@@ -134,6 +137,31 @@
                 </div>
                 <div id="progress-dialog-footer" class="dialog-footer">
                     <button id="progress-dialog-ok-button" class="button button-primary">OK</button>
+                </div>
+            </dialog>
+
+            <!-- Star edit dialog ----------------------------------------------------------------->
+            <dialog id="edit-star-dialog">
+                <div id="edit-star-dialog-header" class="dialog-header">Edit star</div>
+                <div id="edit-star-dialog-body" class="dialog-body custom-scrollbar">
+                    <input type="text" id="edit-star-dialog-name">
+                    <img src="" alt="" id="edit-star-dialog-image">
+                    <div id="edit-star-dialog-bottom">
+                        <label for="edit-star-dialog-score">Score:
+                            <input type="number" id="edit-star-dialog-score" placeholder="Score">
+                        </label>
+                        <label for="edit-star-dialog-movies">Movies:
+                            <input type="number" id="edit-star-dialog-movies" placeholder="Movies">
+                        </label>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" id="edit-star-dialog-special">
+                            <path class="app-icon special-icon"
+                                d="M512 256c0-37.7-23.7-69.9-57.1-82.4 14.7-32.4 8.8-71.9-17.9-98.6-26.7-26.7-66.2-32.6-98.6-17.9C325.9 23.7 293.7 0 256 0s-69.9 23.7-82.4 57.1c-32.4-14.7-72-8.8-98.6 17.9-26.7 26.7-32.6 66.2-17.9 98.6C23.7 186.1 0 218.3 0 256s23.7 69.9 57.1 82.4c-14.7 32.4-8.8 72 17.9 98.6 26.6 26.6 66.1 32.7 98.6 17.9 12.5 33.3 44.7 57.1 82.4 57.1s69.9-23.7 82.4-57.1c32.6 14.8 72 8.7 98.6-17.9 26.7-26.7 32.6-66.2 17.9-98.6 33.4-12.5 57.1-44.7 57.1-82.4zm-144.8-44.25L236.16 341.74c-4.31 4.28-11.28 4.25-15.55-.06l-75.72-76.33c-4.28-4.31-4.25-11.28.06-15.56l26.03-25.82c4.31-4.28 11.28-4.25 15.56.06l42.15 42.49 97.2-96.42c4.31-4.28 11.28-4.25 15.55.06l25.82 26.03c4.28 4.32 4.26 11.29-.06 15.56z" />
+                        </svg>
+                    </div>
+                </div>
+                <div id="edit-star-dialog-footer" class="dialog-footer">
+                    <button id="edit-star-dialog-cancel-button" class="button button-secondary">Cancel</button>
+                    <button id="edit-star-dialog-ok-button" class="button button-primary">OK</button>
                 </div>
             </dialog>
 
@@ -221,19 +249,19 @@
                     </div>
                     <div class="app-icons">
                         <div class="star-card-special">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="star-card-special-icon">
                                 <path class="app-icon special-icon"
                                     d="M512 256c0-37.7-23.7-69.9-57.1-82.4 14.7-32.4 8.8-71.9-17.9-98.6-26.7-26.7-66.2-32.6-98.6-17.9C325.9 23.7 293.7 0 256 0s-69.9 23.7-82.4 57.1c-32.4-14.7-72-8.8-98.6 17.9-26.7 26.7-32.6 66.2-17.9 98.6C23.7 186.1 0 218.3 0 256s23.7 69.9 57.1 82.4c-14.7 32.4-8.8 72 17.9 98.6 26.6 26.6 66.1 32.7 98.6 17.9 12.5 33.3 44.7 57.1 82.4 57.1s69.9-23.7 82.4-57.1c32.6 14.8 72 8.7 98.6-17.9 26.7-26.7 32.6-66.2 17.9-98.6 33.4-12.5 57.1-44.7 57.1-82.4zm-144.8-44.25L236.16 341.74c-4.31 4.28-11.28 4.25-15.55-.06l-75.72-76.33c-4.28-4.31-4.25-11.28.06-15.56l26.03-25.82c4.31-4.28 11.28-4.25 15.56.06l42.15 42.49 97.2-96.42c4.31-4.28 11.28-4.25 15.55.06l25.82 26.03c4.28 4.32 4.26 11.29-.06 15.56z" />
                             </svg>
                         </div>
                         <div class="star-card-edit-button">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="star-card-edit-icon">
                                 <path class="app-icon edit-icon"
                                     d="M497.9 142.1l-46.1 46.1c-4.7 4.7-12.3 4.7-17 0l-111-111c-4.7-4.7-4.7-12.3 0-17l46.1-46.1c18.7-18.7 49.1-18.7 67.9 0l60.1 60.1c18.8 18.7 18.8 49.1 0 67.9zM284.2 99.8L21.6 362.4.4 483.9c-2.9 16.4 11.4 30.6 27.8 27.8l121.5-21.3 262.6-262.6c4.7-4.7 4.7-12.3 0-17l-111-111c-4.8-4.7-12.4-4.7-17.1 0zM88 424h48v36.3l-64.5 11.3-31.1-31.1L51.7 376H88v48z" />
                             </svg>
                         </div>
                         <div class="star-card-delete-button">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="star-card-delete-icon">
                                 <path class="app-icon delete-icon"
                                     d="M432 32H312l-9.4-18.7A24 24 0 0 0 281.1 0H166.8a23.72 23.72 0 0 0-21.4 13.3L136 32H16A16 16 0 0 0 0 48v32a16 16 0 0 0 16 16h416a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16zM53.2 467a48 48 0 0 0 47.9 45h245.8a48 48 0 0 0 47.9-45L416 128H32z" />
                             </svg>
@@ -276,6 +304,10 @@
                                     class="movie-card-score"></input>
                             </Label>
                         </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="movie-card-edit-icon">
+                            <path class="app-icon"
+                                d="M208 336L192 448L304 432L495 241L399 145L208 336zM592 144L496 48L433 111L529 207L592 144zM96 128L64 128L64 576L512 576L512 352L448 352L448 512L128 512L128 192L288 192L288 128L96 128z" />
+                        </svg>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" class="movie-card-validate-icon">
                             <path class="app-icon"
                                 d="M448 96L512 96L512 576L128 576L128 96L192 96L192 64L448 64L448 96zM377.4 281.9L291.8 399.6C272.5 379.6 258.1 364.7 248.6 354.9L214.1 388.2C220.3 394.6 241.3 416.3 277.2 453.5L297 474.1L313.8 451L416.2 310.2L430.3 290.8L391.5 262.6L377.4 282zM240 176L400 176L400 128L240 128L240 176z" />

@@ -12,9 +12,8 @@ from datetime import datetime
 from tkinter import filedialog
 from typing import Dict, List, Set, Optional, Union, Any
 from db import get_table_data
-import logging
+from utilities import get_base_dir
 
-logger = logging.getLogger(__name__)
 #---------------------------------------------------------------------------------------------------------------------
 # Define a set of video file extensions to filter files in the selected folder
 #---------------------------------------------------------------------------------------------------------------------
@@ -39,10 +38,8 @@ def select_folder():
         )
         root.destroy()
         if folder:
-            logger.info(f"Selected folder saved in backend: {folder}")
             return folder
     except Exception as e:
-        logger.error(f"An error occurred: {e}")
         return None
     
 #---------------------------------------------------------------------------------------------------------------------
@@ -411,22 +408,9 @@ def extract_folder_name(filename: str) -> str:
 def import_videos():
     folder = select_folder()
     if not folder:
-        logger.info("No folder selected.")
         return [] # or return None
     eel.update_folder(folder)
     return get_videos_in_folder(folder)
-
-#---------------------------------------------------------------------------------------------------------------------
-# Return the directory in which the application’s data live.
-#   * when running from Python it is the `web` folder next to this module;
-#   * when frozen by PyInstaller/py2exe/etc. it is the directory containing the .exe, which will also contain `lin`.
-def get_base_dir() -> str:
-    if getattr(sys, 'frozen', False):
-        # frozen – sys.executable points at the .exe
-        return os.path.dirname(sys.executable)
-    else:
-        # development – return the directory containing main.py/files.py
-        return os.path.abspath(os.path.dirname(__file__))
 
 #---------------------------------------------------------------------------------------------------------------------
 def delete_thumbnail(movie_id: int, filename: str) -> bool:
@@ -435,7 +419,6 @@ def delete_thumbnail(movie_id: int, filename: str) -> bool:
         os.remove(path)
         return True
     except Exception as e:
-        logger.error(f"Error deleting thumbnail: {e}")
         return False
 
 #---------------------------------------------------------------------------------------------------------------------
@@ -454,7 +437,7 @@ def set_poster(movie_id: int, filename: str) -> list[str]:
         
         # Safety: source must exist and be a file
         if not os.path.isfile(source_path):
-            logger.error(f"Source file not found: {source_path}")
+            print(f"Source file not found: {source_path}")
             return []
         
         # Backup existing poster.jpg if it exists
@@ -470,11 +453,9 @@ def set_poster(movie_id: int, filename: str) -> list[str]:
                 counter += 1
             
             os.rename(dest_path, backup_path)
-            logger.info(f"Renamed existing poster → {backup_name}")
         
         # Perform the rename
         os.rename(source_path, dest_path)
-        logger.info(f"Renamed {filename} → poster.jpg for movie {movie_id}")
         
         # Get all filenames in the directory (only files, not subfolders)
         all_files = [f for f in os.listdir(movie_dir) if os.path.isfile(os.path.join(movie_dir, f))]
@@ -482,16 +463,16 @@ def set_poster(movie_id: int, filename: str) -> list[str]:
         return sorted(all_files)  # optional: sort for consistent UI order
     
     except FileNotFoundError as e:
-        logger.error(f"File not found error: {e}")
+        print(f"File not found error: {e}")
         return []
     except PermissionError as e:
-        logger.error(f"Permission denied: {e}")
+        print(f"Permission denied: {e}")
         return []
     except OSError as e:
-        logger.error(f"OS error during rename: {e}")
+        print(f"OS error during rename: {e}")
         return []
     except Exception as e:
-        logger.error(f"Unexpected error setting poster for movie {movie_id}: {e}")
+        print(f"Unexpected error setting poster for movie {movie_id}: {e}")
         return []
     
 #---------------------------------------------------------------------------------------------------------------------

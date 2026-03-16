@@ -10,8 +10,8 @@ class Tag {
         this.score = score;
     }
 
-    CreateBadge() {
-        return UI.CreateBadge(this);
+    CreateBadge(movie) {
+        return UI.CreateBadge(this, movie);
     }
 
     // Static

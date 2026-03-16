@@ -14,9 +14,10 @@ class Movie {
         duration = null,
         codec = null,
         fps = null,
-        hasThumbnails = false,
+        thumbnails = [],
         stars = [],
         tags = [],
+        edited = false,
         success = true
     } = {}) {
         this.id = id;
@@ -33,15 +34,15 @@ class Movie {
         this.codec = codec;
         this.fps = fps;
         this.card = null;
-        this.hasThumbnails = hasThumbnails;
+        this.thumbnails = thumbnails;
         this.stars = stars;
         this.tags = tags;
+        this.edited = edited;
         this.success = success;
 
         this.GetCardElements();
         this.CreateMovieCard();
-        this.CalculateScore();
-        this.CreateNewName();
+        this.UpdateInfo();
     }
 
     Export() {
@@ -60,9 +61,10 @@ class Movie {
             duration: this.duration,
             codec: this.codec,
             fps: this.fps,
-            stars: [...this.stars].map(star => Star.GetStarIdByName(star)),
-            tags: [...this.tags].map(tag => Tag.GetTagIdByName(tag)),
-            success: this.success
+            stars: [...this.stars].map(star => star.id),
+            tags: [...this.tags].map(tag => tag.id),
+            success: this.success,
+            edited: this.edited
         }
     }
 
@@ -118,6 +120,7 @@ class Movie {
         this.fpsContainer = this.card.querySelector('.movie-card-fps');
         this.imageContainer = this.card.querySelector('.movie-card-image');
         this.specialIcon = this.card.querySelector('.movie-card-special-icon');
+        this.editIcon = this.card.querySelector('.movie-card-edit-icon');
         this.deleteIcon = this.card.querySelector('.movie-card-delete-icon');
         this.validateIcon = this.card.querySelector('.movie-card-validate-icon');
         this.addStarButton = this.card.querySelector('.add-star-button');
@@ -125,7 +128,7 @@ class Movie {
         this.thumbnailsContainer = this.card.querySelector('.movie-card-thumbnails');
     }
 
-    CreateMovieCard() {
+    CreateMovieCard(editable = true) {
         this.card.movie = this;
         this.idContainer.textContent = this.id;
         this.newNameContainer.value = this.newName || '';
@@ -170,16 +173,82 @@ class Movie {
             this.success = !this.success;
             this.card.classList.toggle('failed-movie');
         });
-    }
 
+        this.editIcon.addEventListener('click', () => {
+            //TODO: Implement edit functionality if needed
+        });
+
+        if (Movie.container == this.container) {
+            this.card.classList.add('active-container');
+        }
+    }
 
     PopulateMovieCardElements(classRef) {
         const elements = classRef == Star ? this.stars : this.tags; // Ensure we're working with Sets
         const fragment = document.createDocumentFragment();
         const container = classRef == Star ? this.starsContainer : this.tagsContainer; // Determine the correct container
         container.innerHTML = '';
-        elements.forEach(el => fragment.appendChild(el.CreateBadge()));
+        elements.forEach(el => fragment.appendChild(el.CreateBadge(this)));
         container.appendChild(fragment);
+    }
+
+    UpdateInfo() {
+        this.CalculateScore();
+        this.CreateNewName();
+    }
+
+    CreateThumbnails(imageNames) {
+        this.thumbnailsContainer.innerHTML = '';
+        imageNames.forEach(imageName => {
+            this.CreateThumbnail(imageName);
+        });
+    }
+
+    CreateThumbnail(imageName) {
+        const thumbnail = UI.GetElementFromTemplate('thumbnail-template');
+        const img = thumbnail.querySelector('img');
+        img.src = `${UI.MovieThumbsPath}${this.id}/${imageName}`;
+        this.InitThumbnailDeleteIcon(thumbnail, imageName);
+        this.InitThumbnailPosterIcon(thumbnail, imageName);
+        this.thumbnailsContainer.appendChild(thumbnail);
+    }
+
+    InitThumbnailPosterIcon(thumbnail, filename) {
+        const posterIcon = thumbnail.querySelector('.thumbnail-poster-icon');
+        posterIcon.addEventListener('click', async (event) => {
+            const result = await eel.Set_Poster(this.id, filename)();
+            if (!result) {
+                UI.ShowAlertDialog('Error', 'Failed to set thumbnail as poster.');
+                return;
+            }
+            this.imageContainer.src = `${UI.MovieThumbsPath}${this.id}/poster.jpg`;
+            this.CreateThumbnails(result.filter(name => name !== 'poster.jpg')); // Refresh thumbnails, excluding the new poster
+        });
+    }
+
+    InitThumbnailDeleteIcon(thumbnail, filename) {
+        const deleteIcon = thumbnail.querySelector('.thumbnail-delete-icon');
+        deleteIcon.addEventListener('click', async (event) => {
+            // Bypass confirmation if Ctrl is held during click
+            const bypassConfirmation = event.ctrlKey;   // true if Ctrl was pressed
+            let confirmed = true;
+            // Only show confirmation dialog if Ctrl is NOT pressed
+            if (!bypassConfirmation) {
+                confirmed = await UI.ShowConfirmDialog(
+                    'Delete Thumbnail',
+                    'Are you sure you want to delete this thumbnail?'
+                );
+            }
+            if (!confirmed) return;
+            // Proceed with deletion
+            const img = thumbnail.querySelector('img');
+            const result = await eel.Delete_Thumbnail(this.id, filename)();
+            if (!result) {
+                UI.ShowAlertDialog('Error', 'Failed to delete thumbnail.');
+                return;
+            }
+            thumbnail.remove();
+        });
     }
 
     //---------------------------------------------------------------------------------------------------------- Static
@@ -188,6 +257,21 @@ class Movie {
     static disk = null;
     static container = null;
     static folder = null;
+
+    static ShowMovies() {
+        UI.moviesSection.innerHTML = '';
+        const fragment = document.createDocumentFragment();
+        Movie.movies.forEach(movie => {
+            if (movie.thumbnails.length) {
+                if (movie.thumbnails.includes('poster.jpg')) {
+                    movie.imageContainer.src = `${UI.MovieThumbsPath}${movie.id}/poster.jpg`;
+                }
+                movie.CreateThumbnails(movie.thumbnails); // Ensure thumbnails are created for each movie
+            }
+            fragment.appendChild(movie.card);
+        });
+        UI.moviesSection.appendChild(fragment);
+    }
 
     static async ShowFolderMoviesToImport() {
         Movie.maxId = await eel.Get_Max_Id('movies')(); // Get the max movie ID from the database for future additions
@@ -206,9 +290,4 @@ class Movie {
         UI.moviesSection.appendChild(successfull);
         UI.moviesSection.appendChild(failed);
     }
-
-    static async Init() {
-        await Movie.ShowMovies();
-    }
-
 }

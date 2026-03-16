@@ -1,15 +1,15 @@
-from ast import List
 import datetime
 import shutil
 import sys
-import logging
 import os
 import sqlite3
-from typing import List as ListType
 import sqlite3
+from ast import List
+from typing import List as ListType
+from utilities import get_base_dir
 
 
-logger = logging.getLogger(__name__)
+
 #--------------------------------------------------------------------------------------------------------
 # Function to get the path to the database file, handling both development and packaged modes
 def get_db_path(db_name='valerie.db'):  # Replace with your actual DB file name
@@ -42,7 +42,7 @@ def get_table_data(table_name: str) -> list[dict]:
         return [dict(row) for row in rows]
         
     except sqlite3.Error as e:
-        logger.error(f"SQLite error while reading table '{table_name}': {e}")
+        print(f"SQLite error while reading table '{table_name}': {e}")
         return []
         
     finally:
@@ -61,7 +61,7 @@ def get_max_id(table_name: str = "stars") -> int | None:
         return result if result is not None else 0
         
     except sqlite3.Error as e:
-        logger.error(f"SQLite error while trying to get max id from table '{table_name}': {e}")
+        print(f"SQLite error while trying to get max id from table '{table_name}': {e}")
         return []
         
     finally:
@@ -116,10 +116,8 @@ def insert_movies(movies: list) -> dict:
         ts = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         backup = f"{db_path}.{ts}.bak"
         shutil.copy2(db_path, backup)
-        logger.info(f"db backup created: {backup}")
     except Exception as e:
-        # not fatal – we log it and carry on
-        logger.warning(f"warning: could not back up database before insert: {e}")
+        print(f"warning: could not back up database before insert: {e}")
     successful = []
     failed_insert = []
    
@@ -201,10 +199,294 @@ def insert_movies(movies: list) -> dict:
 
 #--------------------------------------------------------------------------------------------------------
 db_path = get_db_path()
-logger.info(f"Database path: {db_path}")
+
+#---------------------------------------------------------------------------------------------------------------------
+def get_video_thumbnails(video_id: int) -> list[str]:
+    try:
+        base_dir = get_base_dir()        
+        thumbs_dir = os.path.join(base_dir, "web", "lin", str(video_id))
+        if not os.path.exists(thumbs_dir):
+            return []
+        return sorted([f for f in os.listdir(thumbs_dir) if f.endswith('.jpg')])
+    except Exception as e:
+        return []
+    
+#--------------------------------------------------------------------------------------------------------
+def delete_star(star_id: int) -> bool:
+    db_path = get_db_path()
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM stars WHERE id = ?", (star_id,))
+        conn.commit()
+        return True
+    except Exception as e:
+        if 'conn' in locals():
+            conn.rollback()
+        print(f"Error deleting star_id {star_id}: {e}")
+        return False
+    finally:
+        if 'conn' in locals():
+            conn.close()    
+            
+#--------------------------------------------------------------------------------------------------------
+def clean_edited_status(star_id: int) -> bool:
+    db_path = get_db_path()
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute("UPDATE stars SET edited = 0 WHERE id = ?", (star_id,))
+        conn.commit()
+        return True
+    except Exception as e:
+        if 'conn' in locals():
+            conn.rollback()
+        print(f"Error cleaning edited status for star_id {star_id}: {e}")
+        return False
+    finally:
+        if 'conn' in locals():
+            conn.close()
 
 #--------------------------------------------------------------------------------------------------------
+def set_special_status(star_id: int, special: bool) -> bool:
+    db_path = get_db_path()
+    try:
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute("UPDATE stars SET special = ? WHERE id = ?", (1 if special else 0, star_id))
+        conn.commit()
+        return True
+    except Exception as e:
+        if 'conn' in locals():
+            conn.rollback()
+        print(f"Error updating special status for star_id {star_id}: {e}")
+        return False
+    finally:
+        if 'conn' in locals():
+            conn.close()
+            
+#--------------------------------------------------------------------------------------------------------
+def add_edit_star(data: dict) -> dict:
+    print(f"edit_star called with data: {data}")
+    # Extract fields from the input dict
+    star_id = data.get('id')
+    name = data.get('name')
+    special = data.get('special')
+    score = data.get('score')
+    movies = data.get('movies')
+    edited = data.get('edited')
+    
+    db_path = get_db_path()
+    try:
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row  # Enable dict conversion on rows
+        cursor = conn.cursor()
+        
+        if star_id is None:
+            # Insert a new star
+            inserts = []
+            params = []
+            if name is not None:
+                inserts.append("name")
+                params.append(name)
+            if special is not None:
+                inserts.append("special")
+                params.append(1 if special else 0)
+            if score is not None:
+                inserts.append("score")
+                params.append(score)
+            if movies is not None:
+                inserts.append("movies")
+                params.append(movies)
+            if edited is not None:
+                inserts.append("edited")
+                params.append(edited)
+            
+            if not inserts:
+                return {"error": "No fields provided to create a new star"}
+            
+            placeholders = ','.join('?' * len(inserts))
+            query = f"INSERT OR IGNORE INTO stars ({', '.join(inserts)}) VALUES ({placeholders})"
+            cursor.execute(query, params)
+            conn.commit()
+            
+            # Get the new star's ID and return it
+            new_id = cursor.lastrowid
+            cursor.execute("SELECT * FROM stars WHERE id = ?", (new_id,))
+            row = cursor.fetchone()
+            return dict(row) if row else {"error": "Failed to retrieve new star after insert"}
+        else:
+            # Update existing star (original logic)
+            updates = []
+            params = []
+            if name is not None:
+                updates.append("name = ?")
+                params.append(name)
+            if special is not None:
+                updates.append("special = ?")
+                params.append(1 if special else 0)
+            if score is not None:
+                updates.append("score = ?")
+                params.append(score)
+            if movies is not None:
+                updates.append("movies = ?")
+                params.append(movies)
+            if edited is not None:
+                updates.append("edited = ?")
+                params.append(edited)
+            
+            if not updates:
+                return {"error": "No fields to update"}
+            
+            params.append(star_id)
+            query = f"UPDATE stars SET {', '.join(updates)} WHERE id = ?"
+            cursor.execute(query, params)
+            conn.commit()
+            
+            # Return updated star
+            cursor.execute("SELECT * FROM stars WHERE id = ?", (star_id,))
+            row = cursor.fetchone()
+            return dict(row) if row else {"error": "Star not found after update"}
+    
+    except Exception as e:
+        if 'conn' in locals():
+            conn.rollback()
+        return {"error": str(e)}
+    finally:
+        if 'conn' in locals():
+            conn.close()
+            
+#--------------------------------------------------------------------------------------------------------
+# Retrieves movies from the SQLite database based on optional filters.
+# :param stars: List of star IDs (integers). Movies must contain ALL specified stars if provided.
+# :param tags: List of tag IDs (integers). Movies must contain ALL specified tags if provided.
+# :param min_score: Minimum score (integer). Movies must have score >= this value if provided.
+# :param disk: Disk string. Exact match if provided.
+# :param container: Container string. Exact match if provided.
+# :param limit: Maximum number of results to return.
+# :param offset: Number of results to skip.
+# :return: List of movie dictionaries with 'star_ids' and 'tag_ids' lists.
+def get_movies(stars=None, tags=None, min_score=None, disk=None, container=None, limit=5000, offset=0):
+    print(f"get_movies called with stars={stars}, tags={tags}, min_score={min_score}, disk='{disk}', container='{container}', limit={limit}, offset={offset}")
+    
+    if stars is None:
+        stars = []
+    if tags is None:
+        tags = []
+    
+    db_path = get_db_path()
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+    
+    cur.execute(
+    "SELECT movie_id FROM movie_stars WHERE star_id IN (?,?) GROUP BY movie_id HAVING COUNT(DISTINCT star_id) = ?",
+    (5, 3, 2))
+    print("movie_ids matching both stars:", [r[0] for r in cur.fetchall()])
 
+    query = "SELECT * FROM movies"
+    params = []
+    conditions = []
+    
+    if min_score is not None:
+        conditions.append("score >= ?")
+        params.append(min_score)
+    
+    if disk and disk.strip():
+        conditions.append("disk = ?")
+        params.append(disk)
+    
+    if container and container.strip():
+        conditions.append("container = ?")
+        params.append(container)
+    
+    if stars:
+        star_placeholders = ','.join('?' * len(stars))
+        conditions.append(f"id IN (SELECT movie_id FROM movie_stars WHERE star_id IN ({star_placeholders}) GROUP BY movie_id HAVING COUNT(DISTINCT star_id) = ?)")
+        params.extend(stars)
+        params.append(len(stars))
+    
+    if tags:
+        tag_placeholders = ','.join('?' * len(tags))
+        conditions.append(f"id IN (SELECT movie_id FROM movie_tags WHERE tag_id IN ({tag_placeholders}) GROUP BY movie_id HAVING COUNT(DISTINCT tag_id) = ?)")
+        params.extend(tags)
+        params.append(len(tags))
+    
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
+    
+    query += f" LIMIT ? OFFSET ?"
+    params.extend([limit, offset])
+    
+    print(f"Executing query: {query}")
+    print(f"With params: {params}")
+    
+    try:
+        cur.execute(query, params)
+        rows = cur.fetchall()
+        
+        # === Batch-fetch stars and tags for ALL movies in one go (avoids N+1 queries) ===
+        movies_list = []
+        if rows:
+            movie_ids = [row['id'] for row in rows]
+            ph = ','.join('?' * len(movie_ids))
+            
+            # Stars
+            cur.execute(f"""
+                SELECT movie_id, star_id 
+                FROM movie_stars 
+                WHERE movie_id IN ({ph}) 
+                ORDER BY movie_id, star_id
+            """, movie_ids)
+            star_map = {}
+            for mid, sid in cur.fetchall():
+                if mid not in star_map:
+                    star_map[mid] = []
+                star_map[mid].append(sid)
+            
+            # Tags
+            cur.execute(f"""
+                SELECT movie_id, tag_id 
+                FROM movie_tags 
+                WHERE movie_id IN ({ph}) 
+                ORDER BY movie_id, tag_id
+            """, movie_ids)
+            tag_map = {}
+            for mid, tid in cur.fetchall():
+                if mid not in tag_map:
+                    tag_map[mid] = []
+                tag_map[mid].append(tid)
+            
+            # Build final list
+            for row in rows:
+                movie_dict = dict(row)
+                movie_id = movie_dict['id']
+                movie_dict['star_ids'] = star_map.get(movie_id, [])
+                movie_dict['tag_ids'] = tag_map.get(movie_id, [])
+                # add a thumbnails list so the frontend can render them
+                try:
+                    movie_dict['thumbnails'] = get_video_thumbnails(movie_id)
+                except Exception:
+                    # any failure here should not break the search
+                    movie_dict['thumbnails'] = []
+                movies_list.append(movie_dict)
+        
+        print(f"Query returned {len(movies_list)} rows")
+        if movies_list:
+            print(f"Sample result: {movies_list[0]}")
+        
+        conn.close()
+        return movies_list
+    
+    except Exception as e:
+        print(f"Error in get_movies: {e}")
+        conn.close()
+        return []
+
+
+
+
+'''
 def get_movies(stars=None, tags=None, min_score=None, disk=None, container=None, limit=5000, offset=0):
     """
     Retrieves movies from the SQLite database based on optional filters.
@@ -218,7 +500,7 @@ def get_movies(stars=None, tags=None, min_score=None, disk=None, container=None,
     :param offset: Number of results to skip.
     :return: List of movie dictionaries with 'star_ids' and 'tag_ids' lists.
     """
-    logger.info(f"get_movies called with stars={stars}, tags={tags}, min_score={min_score}, disk='{disk}', container='{container}', limit={limit}, offset={offset}")
+    print(f"get_movies called with stars={stars}, tags={tags}, min_score={min_score}, disk='{disk}', container='{container}', limit={limit}, offset={offset}")
     
     if stars is None:
         stars = []
@@ -264,14 +546,14 @@ def get_movies(stars=None, tags=None, min_score=None, disk=None, container=None,
     query += f" LIMIT ? OFFSET ?"
     params.extend([limit, offset])
     
-    logger.info(f"Executing query: {query}")
-    logger.info(f"With params: {params}")
+    print(f"Executing query: {query}")
+    print(f"With params: {params}")
     
     try:
         cur.execute(query, params)
         rows = cur.fetchall()
         
-        # Convert to list of dicts and fetch star/tag IDs for each movie
+        #Convert to list of dicts and fetch star/tag IDs for each movie
         movies_list = []
         for row in rows:
             movie_dict = dict(row)
@@ -289,14 +571,16 @@ def get_movies(stars=None, tags=None, min_score=None, disk=None, container=None,
             
             movies_list.append(movie_dict)
         
-        logger.info(f"Query returned {len(movies_list)} rows")
+        print(f"Query returned {len(movies_list)} rows")
         if movies_list:
-            logger.info(f"Sample result: {movies_list[0]}")
+            print(f"Sample result: {movies_list[0]}")
         
         conn.close()
         return movies_list
     
     except Exception as e:
-        logger.error(f"Error executing query: {e}", exc_info=True)
+        print(f"Error executing query: {e}", exc_info=True)
         conn.close()
-        return []
+        return print
+
+'''

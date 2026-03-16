@@ -13,12 +13,14 @@
 }
 
 :root {
-    --gray-1  : #1e1f1c;
-    --gray-2  : #272822;
-    --gray-3  : #3e3d32;
-    --text    : #f8f8f2;
-    --accent  : #00e1ff;
-    --accent-2: #ffa200;
+    --gray-1          : #1e1f1c;
+    --gray-2          : #272822;
+    --gray-3          : #3e3d32;
+    --text            : #f8f8f2;
+    --accent          : #00e1ff;
+    --accent-2        : #ffa200;
+    --edited          : #810000;
+    --active-container: #003c4d;
 
     --border-radius     : 8px;
     --star-card-width   : 256px;
@@ -59,6 +61,7 @@ menu {
     font-family     : sans-serif;
     font-size       : 14px;
     grid-area       : menu;
+    padding-block   : 4px;
 
     .menu-item {
         padding : 5px 12px;
@@ -83,6 +86,7 @@ menu {
 
     .menu-item:hover .dropdown {
         display: block;
+        width  : max-content;
     }
 
     .option {
@@ -277,6 +281,15 @@ progress::-webkit-progress-value {
     width           : var(--star-card-width);
     position        : relative;
 
+    &.edited {
+
+        .star-card-top {
+            background-color: var(--edited) !important;
+            color           : var(--text);
+            cursor          : pointer;
+        }
+    }
+
     .star-card-image-container {
         width        : var(--star-card-width);
         height       : var(--star-card-height);
@@ -301,6 +314,7 @@ progress::-webkit-progress-value {
         backdrop-filter          : blur(8px);
         padding                  : 4px 8px;
         border-bottom-left-radius: var(--border-radius);
+
     }
 
     .star-card-id {
@@ -433,6 +447,10 @@ input {
         color: var(--text);
     }
 
+    &.active-container {
+        background-color: var(--active-container);
+    }
+
     .movie-card-left {
         width   : 320px;
         position: relative;
@@ -453,7 +471,8 @@ input {
 
     .movie-card-special-icon,
     .movie-card-delete-icon,
-    .movie-card-validate-icon {
+    .movie-card-validate-icon,
+    .movie-card-edit-icon {
         cursor: pointer;
 
         path {
@@ -465,6 +484,9 @@ input {
             cursor: pointer;
         }
 
+    }
+
+    .movie-card-special-icon {
         &.special-movie {
             path {
                 fill: var(--accent);
@@ -619,6 +641,11 @@ input {
     &:hover {
         background-color: var(--accent);
         color           : var(--gray-1);
+    }
+
+    &.edited {
+        background-color: var(--edited);
+        color           : var(--text);
     }
 }
 
@@ -779,6 +806,64 @@ option {
             display         : flex;
             gap             : 8px;
             padding         : 8px;
+        }
+    }
+}
+
+#edit-star-dialog {
+    flex-direction: column;
+    width         : fit-content;
+
+    &[open] {
+        display: flex;
+    }
+
+    #edit-star-dialog-name {
+        font-size       : 1.5em;
+        font-weight     : bold;
+        text-align      : center;
+        color           : var(--accent);
+        background-color: transparent;
+        width           : 100%;
+    }
+
+    #edit-star-dialog-image {
+        width        : 256px;
+        height       : auto;
+        border-radius: var(--border-radius);
+    }
+
+    #edit-star-dialog-bottom {
+        display        : flex;
+        gap            : 32px;
+        justify-content: space-between;
+        align-items    : center;
+    }
+
+    label {
+        display    : flex;
+        gap        : 4px;
+        align-items: center;
+    }
+
+    input {
+        width: 90px;
+    }
+
+    .dialog-body {
+        padding: var(--padding);
+    }
+
+    svg {
+        height: 32px;
+
+        &:hover {
+            fill  : var(--accent);
+            cursor: pointer;
+        }
+
+        &.special-star {
+            fill: var(--accent);
         }
     }
 }

@@ -1,11 +1,8 @@
 import eel
 from typing import Any, Dict, Dict, List, Optional
-from log import setup_logging
-from db import add_new_elements, get_max_id, get_movies, get_table_data, insert_movies
+from db import add_edit_star, add_new_elements, clean_edited_status, delete_star, get_max_id, get_movies, get_table_data, insert_movies
 from files import delete_thumbnail, generate_thumbnails, get_videos_in_folder, import_videos, rename_movies, select_folder, set_poster
 from utilities import get_screen_resolution
-
-setup_logging()
 
 eel.init('web') 
 
@@ -67,6 +64,26 @@ def Get_Movies(
     container: Optional[str] = None
 ) -> List[Dict[str, Any]]:
     return get_movies(star_ids, tag_ids, min_score, disk, container)
+
+#--------------------------------------------------------------------------------------------------------
+@eel.expose
+def Add_Edit_Star(data: dict) -> dict:
+    return add_edit_star(data)
+
+#--------------------------------------------------------------------------------------------------------
+@eel.expose
+def Delete_Star(star_id: int) -> bool:
+    return delete_star(star_id)
+
+# ---------------------------------------------------------------
+@eel.expose
+def Clean_Edited_Status(star_id: int) -> bool:
+    return clean_edited_status(star_id)
+
+# ---------------------------------------------------------------
+@eel.expose
+def Set_Special_Status(star_id: int, special: bool) -> bool:
+    return add_edit_star({'id': star_id, 'special': special})
 
 #--------------------------------------------------------------------------------------------------------
 # Accepts lists of star/tag dicts from the frontend, inserts them,
